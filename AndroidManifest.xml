@@ -4,6 +4,7 @@
       android:versionCode="1"
       android:versionName="1.0">
     <application android:icon="@drawable/icon" android:label="@string/app_name">
+		<uses-library android:name="com.google.android.maps" />
         <activity android:name=".Main"
                   android:label="@string/app_name">
             <intent-filter>
@@ -11,8 +12,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+		<activity android:name=".MapTabView" android:label="@string/maptabstring">
+			<intent-filter>
+				<category android:name="android.intent.category.EMBED"></category>
+				<action android:name="android.intent.action.MAIN"></action>
+			</intent-filter>
+        </activity>
+		<activity android:label="@string/recordtabstring" android:name=".RecordTabView">
+			<intent-filter>
+				<category android:name="android.intent.category.EMBED"></category>
+				<action android:name="android.intent.action.MAIN"></action>
+			</intent-filter>
+        </activity>
+		<activity android:label="@string/helptabview" android:name=".HelpTabView">
+			<intent-filter>
+				<category android:name="android.intent.category.EMBED"></category>
+				<action android:name="android.intent.action.MAIN"></action>
+			</intent-filter>
+        </activity>
 
     </application>
     <uses-sdk android:minSdkVersion="4" />
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 
 </manifest> 
