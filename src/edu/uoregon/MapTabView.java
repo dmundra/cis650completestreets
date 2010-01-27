@@ -61,6 +61,7 @@ public class MapTabView extends MapActivity {
 		ll = new LocationListener() {
 
 			public void onLocationChanged(Location newLocation) {
+				currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				createAndShowMyItemizedOverlay(newLocation);
 			}
 
