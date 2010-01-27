@@ -1,7 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content">
-<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/recordText" android:text="Record Tab"></TextView>
-</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content" android:layout_height="wrap_content">
+	<TextView android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/recordText"
+		android:textSize="25px" android:text="Record Location:"></TextView>
+	<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:width="125px"
+		android:layout_marginTop="50px" android:layout_marginLeft="10px"
+		android:id="@+id/recordButton" android:text="Take Audio"></Button>
+	<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:width="125px"
+		android:id="@+id/pictureButton" android:text="Take Picture"
+		android:layout_marginLeft="10px" android:layout_marginTop="110px"></Button>
+	<Button android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/saveButton"
+		android:text="Save" android:width="75px" android:layout_marginLeft="10px"
+		android:layout_marginTop="200px"></Button>
+	<Button android:layout_width="wrap_content"
+		android:layout_toRightOf="@+id/saveButton" android:layout_height="wrap_content"
+		android:id="@+id/cancelButton" android:text="Cancel"
+		android:layout_marginTop="200px" android:width="75px" android:layout_marginLeft="10px"></Button>
+</RelativeLayout>

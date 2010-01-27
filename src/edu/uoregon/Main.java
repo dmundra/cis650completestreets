@@ -7,9 +7,15 @@ import android.os.Bundle;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 
+/**
+ * Class that manages the tabs in the app
+ * @author Daniel Mundra
+ *
+ */
 public class Main extends TabActivity {
 	
-	TabHost mTabHost;
+	// Used to manage tabs
+	public static TabHost mTabHost;
 	
     /** Called when the activity is first created. */
     @Override
@@ -19,7 +25,7 @@ public class Main extends TabActivity {
         
         Context ctx = this.getApplicationContext();
         
-		//tab 1
+		// Create and add Map Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec1 = mTabHost.newTabSpec("tab_test1");
 		tabSpec1.setIndicator("Map");
@@ -27,7 +33,7 @@ public class Main extends TabActivity {
 		tabSpec1.setContent(i1);
 		mTabHost.addTab(tabSpec1);
 		
-		//tab2
+		// Create and add Record Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec2 = mTabHost.newTabSpec("tab_test1");
 		tabSpec2.setIndicator("Record");
@@ -35,7 +41,7 @@ public class Main extends TabActivity {
 		tabSpec2.setContent(i2);
 		mTabHost.addTab(tabSpec2);
 		
-		//tab 3
+		// Create and add Help Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec3 = mTabHost.newTabSpec("tab_test1");
 		tabSpec3.setIndicator("Help");

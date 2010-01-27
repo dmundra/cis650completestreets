@@ -11,7 +11,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.widget.TabHost;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
@@ -20,10 +20,17 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+/**
+ * Map Tab that will show the map and the phone's
+ * current location
+ * @author Daniel Mundra
+ *
+ */
 public class MapTabView extends MapActivity {
 	/** Called when the activity is first created. */
-	private LocationManager lm;
-	private LocationListener ll;
+	public static LocationManager lm;
+	public static LocationListener ll;
+	public static Location currentLocation;
 	private MapView mapView;
 
 	@Override
@@ -32,16 +39,22 @@ public class MapTabView extends MapActivity {
 		setContentView(R.layout.maptabview);
 
 		mapView = (MapView) findViewById(R.id.mapView);
-		// show zoom in/out buttons
+		// Show zoom in/out buttons
 		mapView.setBuiltInZoomControls(true);
 		// Standard view of the map(map/sat)
 		mapView.setSatellite(true);
 
+		// Initialize the location manager
 		initLocationManager();
-		createAndShowMyItemizedOverlay(lm
-				.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+		// Set current location
+		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		// Drop pin on current location
+		createAndShowMyItemizedOverlay(currentLocation);
 	}
 
+	/**
+	 * Initialize the location manager
+	 */
 	private void initLocationManager() {
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -65,7 +78,7 @@ public class MapTabView extends MapActivity {
 	}
 
 	/**
-	 * This method will bea called whenever a cahnge of the current position is
+	 * This method will be called whenever a change of the current position is
 	 * submitted via the GPS.
 	 * 
 	 * @param newLocation
@@ -73,7 +86,7 @@ public class MapTabView extends MapActivity {
 	protected void createAndShowMyItemizedOverlay(Location newLocation) {
 		List<Overlay> overlays = mapView.getOverlays();
 
-		// first remove old overlay
+		// First remove old overlay
 		if (overlays.size() > 0) {
 			for (Iterator<Overlay> iterator = overlays.iterator(); iterator
 					.hasNext();) {
@@ -82,26 +95,26 @@ public class MapTabView extends MapActivity {
 			}
 		}
 
-		// transform the location to a geopoint
+		// Transform the location to a geopoint
 		GeoPoint geopoint = new GeoPoint(
 				(int) (newLocation.getLatitude() * 1E6), (int) (newLocation
 						.getLongitude() * 1E6));
 
-		// initialize icon
+		// Initialize icon
 		Drawable icon = getResources().getDrawable(R.drawable.pin);
 		icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon
 				.getIntrinsicHeight());
 
-		// create my overlay and show it
+		// Create my overlay and show it
 		MyItemizedOverlay overlay = new MyItemizedOverlay(icon);
 		OverlayItem item = new OverlayItem(geopoint, "Current Location", null);
 		overlay.addItem(item);
 		mapView.getOverlays().add(overlay);
 
-		// move to location
+		// Move to location
 		mapView.getController().animateTo(geopoint);
 
-		// redraw map
+		// Redraw map
 		mapView.postInvalidate();
 	}
 
@@ -110,11 +123,19 @@ public class MapTabView extends MapActivity {
 		return false;
 	}
 
+	/**
+	 * This class will be used to overlay icons on the map view
+	 */
 	protected class MyItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 
-		private List<OverlayItem> items;
-		private Drawable marker;
+		private final List<OverlayItem> items;
+		private final Drawable marker;
 
+		/**
+		 * Constructor to overlay icon on map
+		 * 
+		 * @param defaultMarker
+		 */
 		public MyItemizedOverlay(Drawable defaultMarker) {
 			super(defaultMarker);
 			items = new ArrayList<OverlayItem>();
@@ -136,9 +157,13 @@ public class MapTabView extends MapActivity {
 		public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 			super.draw(canvas, mapView, shadow);
 			boundCenterBottom(marker);
-
 		}
 
+		/**
+		 * Adds overlay item to the map
+		 * 
+		 * @param item - OverlayItem
+		 */
 		public void addItem(OverlayItem item) {
 			items.add(item);
 			populate();
@@ -146,8 +171,9 @@ public class MapTabView extends MapActivity {
 
 		@Override
 		protected boolean onTap(int i) {
-			Toast.makeText(getBaseContext(), items.get(i).getPoint().toString(),
-					Toast.LENGTH_SHORT).show();
+			// Load the record tab
+			TabHost tabHost = edu.uoregon.Main.mTabHost;
+			tabHost.setCurrentTab(1);
 
 			return true;
 		}

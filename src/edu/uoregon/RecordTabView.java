@@ -2,13 +2,71 @@ package edu.uoregon;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.TabHost;
+import android.widget.Toast;
 
+/**
+ * Tab to record location with a picture and voice memo.
+ * 
+ * @author Daniel Mundra
+ * 
+ */
 public class RecordTabView extends Activity {
-    /** Called when the activity is first created. */
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.recordtabview);
-    }
+
+	GeoStamp geoStamp;
+
+	/** Called when the activity is first created. */
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.recordtabview);
+
+		final Button saveButton = (Button) findViewById(R.id.saveButton);
+		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
+		final Button recordButton = (Button) findViewById(R.id.recordButton);
+		final Button captureButton = (Button) findViewById(R.id.pictureButton);
+
+		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
+
+		recordButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO Record voice memo
+
+			}
+		});
+
+		captureButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				// TODO To open the camera to take picture
+
+			}
+		});
+
+		saveButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+
+				// save geostamp
+
+				Toast.makeText(getBaseContext(), geoStamp.toString(),
+						Toast.LENGTH_LONG).show();
+			}
+		});
+
+		cancelButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				TabHost tabHost = edu.uoregon.Main.mTabHost;
+				tabHost.setCurrentTab(0);
+			}
+		});
+	}
 
 }
