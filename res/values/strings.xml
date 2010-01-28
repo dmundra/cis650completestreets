@@ -5,4 +5,6 @@
 <string name="maptabstring">Map Tab</string>
 <string name="recordtabstring">Record Tab</string>
 <string name="helptabview">Help Tab</string>
+<string name="audioStopRecording">Stop Recording</string>
+<string name="audioStartRecording">Record Audio</string>
 </resources>

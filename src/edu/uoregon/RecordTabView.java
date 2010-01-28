@@ -3,6 +3,7 @@ package edu.uoregon;
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -41,8 +42,12 @@ public class RecordTabView extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO Record voice memo
-
+				//take us to the record audio page:
+				Intent intent = new Intent(RecordTabView.this, RecordAudioView.class);
+				//TODO: pass in id
+				//intent.putExtra("id", id);
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
 			}
 		});
 
