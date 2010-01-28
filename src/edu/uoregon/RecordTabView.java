@@ -1,5 +1,7 @@
 package edu.uoregon;
 
+import edu.uoregon.db.GeoDBConnector;
+import edu.uoregon.db.IGeoDB;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 public class RecordTabView extends Activity {
 
 	GeoStamp geoStamp;
+	IGeoDB db;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -30,6 +33,9 @@ public class RecordTabView extends Activity {
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
 
 		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
+		
+		// Sets up a connection to the database. 
+		db = GeoDBConnector.open(this);
 
 		recordButton.setOnClickListener(new OnClickListener() {
 
