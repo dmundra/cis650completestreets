@@ -2,8 +2,6 @@ package edu.uoregon;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-
 import android.app.Activity;
 import android.content.ContentValues;
 import android.media.MediaRecorder;
@@ -14,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class RecordAudioView extends Activity{
 	
@@ -28,11 +27,9 @@ public class RecordAudioView extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordaudioview);
 		
-		//sets up our audio
-		if(!setUpAudio()){
-			//something went wrong...
-			finish();
-		}
+		//our geo info
+		final GeoStamp geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
+		
 
 		//our buttons:
 		final Button backB = (Button) findViewById(R.id.backB);
@@ -54,17 +51,22 @@ public class RecordAudioView extends Activity{
 		recordButton.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
+				
 				//start recording if our text is not stop taking audio:
 				if(!recordButton.getText().equals(stopRecordingAudio)){
-					recorder.start();
-			        
-					recordButton.setText(stopRecordingAudio);
+					//for now, we'll only have one audio per stamp
+					if(!setUpAudio("" + geoStamp.getDatabaseID())){
+						Toast.makeText(RecordAudioView.this, "error with the audio, check with support", Toast.LENGTH_LONG);
+					}else{
+						recorder.start();
+						recordButton.setText(stopRecordingAudio);
+					}
 				}else{
 					//stop recording
 					recorder.stop();
-	                recorder.release();
+	                recorder.reset();
 	                
-					recordButton.setText(startRecordingAudio);
+	                recordButton.setText(startRecordingAudio);
 					//TODO: show 'play' button if we successfully recorded something
 				}
 			}
@@ -73,15 +75,24 @@ public class RecordAudioView extends Activity{
 		
 	}
 
-	private boolean setUpAudio() {
+
+	/**
+     * sets up our recorder, not sure if this is a good way to do it...
+     * @return false if we know something went wrong
+     */
+	private boolean setUpAudio(String fileName) {
 		ContentValues values = new ContentValues(3);
 
-        final String rand = "" + (new Random().nextInt(10000));
-        File sampleDir = Environment.getExternalStorageDirectory();
         final String path;
         try 
         { 
-           path = File.createTempFile("AudioTest_" + rand, ".3gp", sampleDir).getAbsolutePath();
+        	final String[] paths = getAudioFilePath(fileName);
+        	File dir = new File(paths[0]);
+        	path = paths[1]; 
+        	if(!dir.exists() && !dir.mkdirs()){
+        		throw new IOException("couldn't make directory? " + dir.getAbsolutePath());
+        	}
+        	
         }
         catch (IOException e) 
         {
@@ -89,7 +100,7 @@ public class RecordAudioView extends Activity{
             return false;
         }
         
-        values.put(MediaStore.MediaColumns.TITLE, "my title " + rand);
+        values.put(MediaStore.MediaColumns.TITLE, "my title " + fileName);
         values.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis() / 1000);
         
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -109,30 +120,18 @@ public class RecordAudioView extends Activity{
         //if we get here we hope that we can go:
         return true;
     }
+    
+	/**
+	 * this is a helper for getting back the file object for the audio recording we have
+	 */
+	private static String[] getAudioFilePath(String fileName){
+		final String[] ret = new String[2];
+		
+		ret[0] = Environment.getExternalStorageDirectory() + "/CompleteStreets/";
+		ret[1] = ret[0] + fileName + ".3gp";
+		
+		return ret;
+	}
 
 }
 
-//protected void saveFileText() {
-//    FileOutputStream fos;
-//    DataOutputStream dos;
-//    
-//    try {          
-//         
-//      boolean success = new File("/data/data/PACKAGE_NAME/files/subdir").mkdir();
-//
-//      if (!success) {
-//          Log.i(this.toString(), "no success");
-//      }
-//      File file =  new File("/data/data/PACKAGE_NAME/files/subdir/MyFile.txt");
-//      file.createNewFile();
-//      if(!file.exists()){
-//         file.createNewFile();
-//         Log.i(this.toString(), "File created...");
-//      }
-//      fos = new FileOutputStream(file);
-//      dos=new DataOutputStream(fos);
-//      dos.writeChars("helloworld...");      
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//} 
