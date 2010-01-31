@@ -8,8 +8,8 @@ import android.content.Context;
 import edu.uoregon.GeoStamp;
 
 public class GeoDBConnector implements IGeoDB {
-	private ArrayList<GeoStamp> stamps;
-	private Context context;
+	private final ArrayList<GeoStamp> stamps;
+	private final Context context;
 	
 	/**
 	 * Constructor.

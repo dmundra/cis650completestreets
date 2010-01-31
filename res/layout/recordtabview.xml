@@ -19,5 +19,9 @@
 	<Button android:layout_width="wrap_content"
 		android:layout_toRightOf="@+id/saveButton" android:layout_height="wrap_content"
 		android:id="@+id/cancelButton" android:text="Cancel"
-		android:layout_marginTop="200px" android:width="75px" android:layout_marginLeft="10px"></Button>
+		android:layout_marginTop="200px" android:width="75px"
+		android:layout_marginLeft="10px"></Button>
+
+	<com.google.android.maps.MapView
+		android:apiKey="0Ksx_oqpYl3agOIChMpnMPaGkNvo0QTv6dHcV-w" android:id="@+id/mapThumbView" android:layout_height="100px" android:layout_width="100px" android:layout_marginLeft="220px"/>
 </RelativeLayout>
