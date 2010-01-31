@@ -15,7 +15,7 @@ import android.location.Location;
 public class GeoStamp {
 
 	// Variables used by GeoStamp
-	private int databaseID = -1;
+	private int databaseID = newGeoStamp;
 	private boolean edit;
 	private final Location loc;
 
@@ -32,11 +32,13 @@ public class GeoStamp {
 
 	/**
 	 * Constructor for GeoStamp, including database id.
+	 * This constructor should only be called from the
+	 * database connector.
 	 */
 	public GeoStamp(Location loc, int databaseID) {
 		this.loc = loc;
 		this.databaseID = databaseID;
-		this.edit = false;
+		this.edit = true;
 	}
 
 	/**
@@ -46,6 +48,22 @@ public class GeoStamp {
 	 */
 	public Location getLoc() {
 		return loc;
+	}
+	
+	/**
+	 * Convenience method for callers that might want just the latitude.
+	 * @return The latitude of this GeoStamp
+	 */
+	public double getLatitude() {
+		return loc.getLatitude();
+	}
+
+	/**
+	 * Convenience method for callers that might want just the longitude.
+	 * @return The longitude of this GeoStamp
+	 */
+	public double getLongitude() {
+		return loc.getLongitude();
 	}
 
 	/**
@@ -97,4 +115,6 @@ public class GeoStamp {
 		GeoStamp g = (GeoStamp) o;
 		return this.loc.distanceTo(g.getLoc()) == 0;
 	}
+	
+	public static final int newGeoStamp = -1;
 }

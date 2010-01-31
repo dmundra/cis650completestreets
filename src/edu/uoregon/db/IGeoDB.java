@@ -21,9 +21,11 @@ public interface IGeoDB {
 	
 	/**
 	 * Adds a geostamp to the database.
+	 * This method is also used when updating a GeoStamp.
 	 * @param geoStamp
+	 * @return true if the GeoStamp was added, false otherwise.
 	 */
-	public abstract void addGeoStamp(GeoStamp geoStamp);
+	public abstract boolean addGeoStamp(GeoStamp geoStamp);
 	
 	// TODO I need to figure out what kind of object a picture and a recording is saved as. 
 //	public abstract void addPictureToGeoStamp(GeoStamp geoStamp, Picture picture);
