@@ -7,4 +7,5 @@
 <string name="helptabview">Help Tab</string>
 <string name="audioStopRecording">Stop Recording</string>
 <string name="audioStartRecording">Record Audio</string>
+<string name="pictureTake">Take picture</string>
 </resources>
