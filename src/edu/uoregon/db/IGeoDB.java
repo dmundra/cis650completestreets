@@ -27,7 +27,28 @@ public interface IGeoDB {
 	 */
 	public abstract boolean addGeoStamp(GeoStamp geoStamp);
 	
-	// TODO I need to figure out what kind of object a picture and a recording is saved as. 
-//	public abstract void addPictureToGeoStamp(GeoStamp geoStamp, Picture picture);
+	/**
+	 * Adds a picture relation to the specified GeoStamp.
+	 * @param geoStamp
+	 * 		The GeoStamp that we want to add a picture to 
+	 * @param picture 
+	 * 		The bytes of the finished JPEG picture.
+	 * @return
+	 * 		True of the insertion succeeds, false otherwise 
+	 */
+	public abstract boolean addPictureToGeoStamp(GeoStamp geoStamp, byte[] picture);
+	
+	/**
+	 * Adds a picture relation to the GeoStamp with the specified ID. 
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we want to add a picture to.
+	 * @param picture
+	 * 		The bytes of the finished JPEG picture.
+	 * @return
+	 * 		True of the insertion succeeds, false otherwise
+	 */
+	public abstract boolean addPictureToGeoStamp(int geoStampID, byte[] picture);
+	
+	// TODO I need to figure out what kind of object a picture and a recording is saved as.
 //	public abstract void addRecordingToGeoStamp(GeoStamp geoStamp, Recording recording);
 }

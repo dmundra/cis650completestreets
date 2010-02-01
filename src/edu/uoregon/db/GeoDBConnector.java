@@ -98,6 +98,50 @@ public class GeoDBConnector implements IGeoDB {
 		// TODO Ignores the latitude and longitude input right now.
 		return getGeoStamps();
 	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public boolean addPictureToGeoStamp(GeoStamp geoStamp, byte[] picture) {
+		return addPictureToGeoStamp(geoStamp.getDatabaseID(), picture);
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public boolean addPictureToGeoStamp(int geoStampID, byte[] picture) {
+		// We do not want to add a picture to a geostamp
+		// that does not exist in the database.
+		if (geoStampID == GeoStamp.newGeoStamp)
+			return false;
+		
+		ContentValues values = new ContentValues();
+		values.put(PICTURE_KEY_PICTURE, picture);
+		
+		long row = db.insert(TABLE_GEOPICTURE, null, values);
+		
+		// If the pictures was successfully inserted
+		// we want to start creating a relation between the GeoStamp
+		// and the picture.
+		if (row != -1) {
+			// Find the currently inserted picture id. 
+			Cursor c = db.query(TABLE_GEOPICTURE, null, "rowid = " + row, null, null, null, null);
+			
+			// If it was found, create the proper relation.
+			if (c.moveToFirst()) {
+				int picID = c.getInt(c.getColumnIndex(KEY_ROWID));
+				ContentValues relation = new ContentValues();
+				relation.put(KEY_GEOSTAMP_ID, geoStampID);
+				relation.put(KEY_PICTURE_ID, picID);
+				
+				if (db.insert(TABLE_GEOSTAMP_PICTURE, null, relation) != -1)
+					return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Establish connection to an SQLite database
@@ -124,10 +168,11 @@ public class GeoDBConnector implements IGeoDB {
 
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(GEOSTAMP_CREATE);
+			db.execSQL(PICTURE_CREATE);
+			db.execSQL(GEOSTAMP_PICTURE_CREATE);
+			
 			// TODO Include the other tables.
-//			db.execSQL(PICTURE_CREATE);
 //			db.execSQL(RECORDING_CREATE);
-//			db.execSQL(GEOSTAMP_PICTURE_CREATE);
 //			db.execSQL(GEOSTAMP_RECORDING_CREATE);
 		}
 

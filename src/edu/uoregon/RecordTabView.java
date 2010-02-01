@@ -18,6 +18,8 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+import edu.uoregon.camera.PicturePreview;
+
 /**
  * Tab to record location with a picture and voice memo.
  * 
@@ -66,8 +68,10 @@ public class RecordTabView extends MapActivity {
 
 			@Override
 			public void onClick(View v) {
-				// TODO To open the camera to take picture
-
+				Intent intent = new Intent(RecordTabView.this,TakePictureView.class);
+				intent.putExtra("geoStampID", geoStamp.getDatabaseID());
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
 			}
 		});
 
