@@ -1,7 +1,12 @@
 package edu.uoregon;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+
 import android.app.Activity;
 import android.content.ContentValues;
 import android.media.MediaRecorder;
@@ -120,6 +125,10 @@ public class RecordAudioView extends Activity{
         //if we get here we hope that we can go:
         return true;
     }
+	
+	private static byte[] getAudioFileByes(String fileName) throws FileNotFoundException, IOException{
+		return IOUtils.toByteArray(new FileReader(getAudioFilePath(fileName)[1]), "UTF8");
+	}
     
 	/**
 	 * this is a helper for getting back the file object for the audio recording we have
