@@ -1,6 +1,5 @@
 package edu.uoregon;
 
-import java.util.Iterator;
 import java.util.List;
 
 import android.content.Intent;
@@ -17,8 +16,6 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
-
-import edu.uoregon.camera.PicturePreview;
 
 /**
  * Tab to record location with a picture and voice memo.
@@ -43,9 +40,10 @@ public class RecordTabView extends MapActivity {
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
 		final MapView mapThumbView = (MapView) findViewById(R.id.mapThumbView);
 
+		// Create geo stamp with current location
 		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
 
-		loadMapThumb(mapThumbView, geoStamp);
+		loadMapThumb(mapThumbView);
 
 		// Sets up a connection to the database.
 		// db = GeoDBConnector.open(this);
@@ -68,7 +66,8 @@ public class RecordTabView extends MapActivity {
 
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(RecordTabView.this,TakePictureView.class);
+				Intent intent = new Intent(RecordTabView.this,
+						TakePictureView.class);
 				intent.putExtra("geoStampID", geoStamp.getDatabaseID());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
@@ -79,11 +78,9 @@ public class RecordTabView extends MapActivity {
 			@Override
 			public void onClick(View v) {
 
-				// Save geostamp
-				// TODO: Since there is no db backend
-				// I am getting the list from MapTabView
-				geoStamp.setEdit();
-				edu.uoregon.MapTabView.stamps.add(geoStamp);
+				// Save geostamp to db
+				// db.addGeoStamp(geoStamp);
+				edu.uoregon.MapTabView.db.add(geoStamp);
 
 				Toast.makeText(getBaseContext(), "Saved", Toast.LENGTH_LONG)
 						.show();
@@ -108,7 +105,7 @@ public class RecordTabView extends MapActivity {
 	 * @param mapThumbView
 	 * @param currLoc
 	 */
-	private void loadMapThumb(MapView mapThumbView, GeoStamp stamp) {
+	private void loadMapThumb(MapView mapThumbView) {
 		// Standard view of the map(map/sat)
 		mapThumbView.setSatellite(true);
 
@@ -116,49 +113,29 @@ public class RecordTabView extends MapActivity {
 		MapController mapControl = mapThumbView.getController();
 		mapControl.setZoom(18);
 
-		List<Overlay> overlays = mapThumbView.getOverlays();
-
-		// First remove old overlays.
-		// This is inefficient but guarantees no leftover pins
-		// specially when moving
-		if (overlays.size() > 0) {
-			for (Iterator<Overlay> iterator = overlays.iterator(); iterator
-					.hasNext();) {
-				iterator.next();
-				iterator.remove();
-			}
-		}
-
 		// Initialize icon
-		// TODO: This logic will be similar across the board to separate add
-		// and edit
-		Drawable icon;
-		if (stamp.isEdit()) {
-			icon = getResources().getDrawable(R.drawable.green);
-		} else {
-			icon = getResources().getDrawable(R.drawable.pin);
-		}
+		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
+		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
+				currLocIcon.getIntrinsicHeight());
 
-		icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon
-				.getIntrinsicHeight());
+		MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
+		List<Overlay> listOfOverlays = mapThumbView.getOverlays();
+		listOfOverlays.clear();
 
-		// Create my overlay and show it
-		MyItemizedOverlay overlay = new MyItemizedOverlay(icon, stamp);
-		OverlayItem item = new OverlayItem(stamp.getGeoPoint(),
+		// Drop pin for location about to be saved
+		OverlayItem curLocItem = new OverlayItem(geoStamp.getGeoPoint(),
 				"Current Location", null);
-		overlay.addItem(item);
-		mapThumbView.getOverlays().add(overlay);
+		curLocOverlay.addItem(curLocItem);
+		listOfOverlays.add(curLocOverlay);
 
-		// Move to location
-		mapThumbView.getController().animateTo(stamp.getGeoPoint());
+		// Animate to current location
+		mapControl.animateTo(geoStamp.getGeoPoint());
 
-		// Redraw map
-		mapThumbView.postInvalidate();
+		mapThumbView.invalidate();
 	}
 
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-
 }

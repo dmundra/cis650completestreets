@@ -16,7 +16,6 @@ public class GeoStamp {
 
 	// Variables used by GeoStamp
 	private int databaseID = newGeoStamp;
-	private boolean edit;
 	private final Location loc;
 
 	// Need variables for pictures and voice memos
@@ -27,7 +26,6 @@ public class GeoStamp {
 	 */
 	public GeoStamp(Location loc) {
 		this.loc = loc;
-		this.edit = false;
 	}
 
 	/**
@@ -38,7 +36,6 @@ public class GeoStamp {
 	public GeoStamp(Location loc, int databaseID) {
 		this.loc = loc;
 		this.databaseID = databaseID;
-		this.edit = true;
 	}
 
 	/**
@@ -64,22 +61,6 @@ public class GeoStamp {
 	 */
 	public double getLongitude() {
 		return loc.getLongitude();
-	}
-
-	/**
-	 * Return whether stamp is new or not
-	 * 
-	 * @return - boolean
-	 */
-	public boolean isEdit() {
-		return edit;
-	}
-
-	/**
-	 * Set edit to true
-	 */
-	public void setEdit() {
-		this.edit = true;
 	}
 
 	/**

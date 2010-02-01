@@ -29,15 +29,13 @@ public class MapTabView extends MapActivity {
 	public static LocationManager lm;
 	public static LocationListener ll;
 	private MapView mapView;
+	private GeoPoint curLocPoint;
+	private MapController mapControl;
+	// public static IGeoDB db;
+	public static List<GeoStamp> db = new ArrayList<GeoStamp>();
 
-	// TODO: Right now currentLocation is used to pass to other tabs
-	// possible replace this with id, or better logic once the db
-	// is in place
+	// Represents current location that we will save
 	public static Location currentLocation;
-	public static boolean edit = false;
-
-	// TODO: Remove once db is in place
-	public static ArrayList<GeoStamp> stamps = new ArrayList<GeoStamp>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -45,8 +43,6 @@ public class MapTabView extends MapActivity {
 		setContentView(R.layout.maptabview);
 
 		// Sets up a connection to the database.
-
-		// TODO: Load the db
 		// db = GeoDBConnector.open(this);
 
 		mapView = (MapView) findViewById(R.id.mapView);
@@ -55,16 +51,70 @@ public class MapTabView extends MapActivity {
 		// Standard view of the map(map/sat)
 		mapView.setSatellite(true);
 
-		// Map Controller, we want the zoom to be close to street level
-		MapController mapControl = mapView.getController();
-		mapControl.setZoom(18);
-
 		// Initialize the location manager
 		initLocationManager();
 		// Set current location
 		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		// Drop pins on saved locations and current locations
-		createAndShowMyItemizedOverlay(currentLocation);
+
+		// Map Controller, we want the zoom to be close to street level
+		mapControl = mapView.getController();
+		mapControl.setZoom(18);
+
+		// Pin for current location
+		curLocPoint = new GeoPoint((int) (currentLocation.getLatitude() * 1E6),
+				(int) (currentLocation.getLongitude() * 1E6));
+
+		// Load map with all pins
+		loadMap();
+	}
+
+	public void loadMap() {
+		
+		// Initialize icon
+		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
+		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
+				currLocIcon.getIntrinsicHeight());
+
+		Drawable saveLocIcon = getResources().getDrawable(R.drawable.green);
+		currLocIcon.setBounds(0, 0, saveLocIcon.getIntrinsicWidth(),
+				saveLocIcon.getIntrinsicHeight());
+
+		MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
+		List<Overlay> listOfOverlays = mapView.getOverlays();
+		listOfOverlays.clear();
+
+		// Load and display saved locations including current one if saved
+//		Iterator<GeoStamp> pins = db.getGeoStamps()
+//				.iterator();
+		Iterator<GeoStamp> pins = db.iterator();
+		boolean currLocNotSaved = true;
+		while (pins.hasNext()) {
+			GeoStamp next = pins.next();
+			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
+			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
+					"Saved Location", null);
+			nextOverlay.addItem(nextOverlayItem);
+			listOfOverlays.add(nextOverlay);
+			
+			GeoStamp currLoc = new GeoStamp(currentLocation);
+			if(next.equals(currLoc)) {
+				currLocNotSaved = false;
+			}
+		}
+
+		// If current location is not save then it will display
+		// with red pin
+		if (currLocNotSaved) {
+			OverlayItem curLocItem = new OverlayItem(curLocPoint,
+					"Current Location", null);
+			curLocOverlay.addItem(curLocItem);
+			listOfOverlays.add(curLocOverlay);
+		}
+
+		// Animate to current location
+		mapControl.animateTo(curLocPoint);
+
+		mapView.invalidate();
 	}
 
 	/**
@@ -78,7 +128,10 @@ public class MapTabView extends MapActivity {
 			public void onLocationChanged(Location newLocation) {
 				currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-				createAndShowMyItemizedOverlay(newLocation);
+				curLocPoint = new GeoPoint(
+						(int) (currentLocation.getLatitude() * 1E6),
+						(int) (currentLocation.getLongitude() * 1E6));
+				loadMap();
 			}
 
 			public void onProviderDisabled(String arg0) {
@@ -97,81 +150,8 @@ public class MapTabView extends MapActivity {
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
 	}
 
-	/**
-	 * This method will be called whenever a change of the current position is
-	 * submitted via the GPS.
-	 * 
-	 * @param newLocation
-	 */
-	protected void createAndShowMyItemizedOverlay(Location newLocation) {
-		List<Overlay> overlays = mapView.getOverlays();
-
-		// First remove old overlays.
-		// This is inefficient but guarantees no leftover pins
-		// specially when moving
-		if (overlays.size() > 0) {
-			for (Iterator<Overlay> iterator = overlays.iterator(); iterator
-					.hasNext();) {
-				iterator.next();
-				iterator.remove();
-			}
-		}
-
-		// Load all saved Geo points
-		// TODO: Need to load the list from the db
-		boolean currLoadSaved = true;
-		Iterator<GeoStamp> iter = stamps.iterator();
-		while (iter.hasNext()) {
-			GeoStamp curr = iter.next();
-
-			mapView.getOverlays().add(createOverlay(curr,curr.getGeoPoint()));
-
-			if (curr.getLoc().distanceTo((newLocation)) == 0) {
-				mapView.getController().animateTo(curr.getGeoPoint());
-				currLoadSaved = false;
-			}
-		}
-
-		// Drop pin on current location only if not saved already
-		if (currLoadSaved) {
-			// Transform the location to a geopoint
-			GeoStamp currLocStamp = new GeoStamp(newLocation);
-			mapView.getOverlays().add(createOverlay(currLocStamp, currLocStamp.getGeoPoint()));
-
-			// Move to location
-			mapView.getController().animateTo(currLocStamp.getGeoPoint());
-		}
-
-		// Redraw map
-		mapView.postInvalidate();
-	}
-
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
-	}
-
-	private MyItemizedOverlay createOverlay(GeoStamp stamp, GeoPoint geopoint) {
-		int pin = 0;
-		String txt = "";
-		if (stamp.isEdit()) {
-			pin = R.drawable.green;
-			txt = "Saved Location";
-		} else {
-			pin = R.drawable.pin;
-			txt = "Current Location";
-		}
-
-		// Initialize icon
-		Drawable icon = getResources().getDrawable(pin);
-		icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon
-				.getIntrinsicHeight());
-
-		// Create my overlay and show it
-		MyItemizedOverlay overlay = new MyItemizedOverlay(icon, stamp);
-		OverlayItem item = new OverlayItem(geopoint, txt, null);
-		overlay.addItem(item);
-
-		return overlay;
 	}
 }
