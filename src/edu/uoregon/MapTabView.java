@@ -1,6 +1,5 @@
 package edu.uoregon;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,6 +17,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
+import edu.uoregon.db.GeoDBConnector;
+import edu.uoregon.db.IGeoDB;
+
 /**
  * Map Tab that will show the map and the phone's current location
  * 
@@ -31,8 +33,7 @@ public class MapTabView extends MapActivity {
 	private MapView mapView;
 	private GeoPoint curLocPoint;
 	private MapController mapControl;
-	// public static IGeoDB db;
-	public static List<GeoStamp> db = new ArrayList<GeoStamp>();
+	private static IGeoDB db;
 
 	// Represents current location that we will save
 	public static Location currentLocation;
@@ -43,7 +44,7 @@ public class MapTabView extends MapActivity {
 		setContentView(R.layout.maptabview);
 
 		// Sets up a connection to the database.
-		// db = GeoDBConnector.open(this);
+		db = GeoDBConnector.open(this);
 
 		mapView = (MapView) findViewById(R.id.mapView);
 		// Show zoom in/out buttons
@@ -84,9 +85,7 @@ public class MapTabView extends MapActivity {
 		listOfOverlays.clear();
 
 		// Load and display saved locations including current one if saved
-//		Iterator<GeoStamp> pins = db.getGeoStamps()
-//				.iterator();
-		Iterator<GeoStamp> pins = db.iterator();
+		Iterator<GeoStamp> pins = db.getGeoStamps().iterator();
 		boolean currLocNotSaved = true;
 		while (pins.hasNext()) {
 			GeoStamp next = pins.next();
@@ -153,5 +152,11 @@ public class MapTabView extends MapActivity {
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		db.close();
+		super.onDestroy();
 	}
 }

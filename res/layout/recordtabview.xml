@@ -12,10 +12,7 @@
 		android:layout_height="wrap_content" android:width="125px"
 		android:id="@+id/pictureButton" android:text="Take Picture"
 		android:layout_marginLeft="10px" android:layout_marginTop="110px"></Button>
-	<Button android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:id="@+id/saveButton"
-		android:text="Save" android:width="75px" android:layout_marginLeft="10px"
-		android:layout_marginTop="200px"></Button>
+	
 	<Button android:layout_width="wrap_content"
 		android:layout_toRightOf="@+id/saveButton" android:layout_height="wrap_content"
 		android:id="@+id/cancelButton" android:text="Cancel"

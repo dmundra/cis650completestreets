@@ -1,8 +1,8 @@
 package edu.uoregon;
 
-import com.google.android.maps.GeoPoint;
-
 import android.location.Location;
+
+import com.google.android.maps.GeoPoint;
 
 /**
  * Class to represent GeoStamps which have location, picture, voice memo
@@ -29,9 +29,8 @@ public class GeoStamp {
 	}
 
 	/**
-	 * Constructor for GeoStamp, including database id.
-	 * This constructor should only be called from the
-	 * database connector.
+	 * Constructor for GeoStamp, including database id. This constructor should
+	 * only be called from the database connector.
 	 */
 	public GeoStamp(Location loc, int databaseID) {
 		this.loc = loc;
@@ -46,9 +45,10 @@ public class GeoStamp {
 	public Location getLoc() {
 		return loc;
 	}
-	
+
 	/**
 	 * Convenience method for callers that might want just the latitude.
+	 * 
 	 * @return The latitude of this GeoStamp
 	 */
 	public double getLatitude() {
@@ -57,6 +57,7 @@ public class GeoStamp {
 
 	/**
 	 * Convenience method for callers that might want just the longitude.
+	 * 
 	 * @return The longitude of this GeoStamp
 	 */
 	public double getLongitude() {
@@ -84,18 +85,20 @@ public class GeoStamp {
 
 	/**
 	 * Return GeoPoint for this stamp
+	 * 
 	 * @return - GeoPoint
 	 */
 	public GeoPoint getGeoPoint() {
-		return new GeoPoint((int) (loc.getLatitude() * 1E6), (int) (loc
-				.getLongitude() * 1E6));
+		return new GeoPoint((int) (this.getLoc().getLatitude() * 1E6),
+				(int) (this.getLoc().getLongitude() * 1E6));
 	}
-	
+
 	@Override
 	public boolean equals(Object o) {
 		GeoStamp g = (GeoStamp) o;
-		return this.loc.distanceTo(g.getLoc()) == 0;
+		boolean isequal = this.getLoc().distanceTo(g.getLoc()) == 0;
+		return isequal;
 	}
-	
+
 	public static final int newGeoStamp = -1;
 }

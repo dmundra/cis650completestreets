@@ -9,13 +9,15 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TabHost;
-import android.widget.Toast;
 
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
+
+import edu.uoregon.db.GeoDBConnector;
+import edu.uoregon.db.IGeoDB;
 
 /**
  * Tab to record location with a picture and voice memo.
@@ -25,8 +27,9 @@ import com.google.android.maps.OverlayItem;
  */
 public class RecordTabView extends MapActivity {
 
-	// public static IGeoDB db;
+	private IGeoDB db;
 	private GeoStamp geoStamp;
+	private boolean prevSaved = false;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -34,7 +37,6 @@ public class RecordTabView extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordtabview);
 
-		final Button saveButton = (Button) findViewById(R.id.saveButton);
 		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
 		final Button recordButton = (Button) findViewById(R.id.recordButton);
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
@@ -43,10 +45,27 @@ public class RecordTabView extends MapActivity {
 		// Create geo stamp with current location
 		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
 
-		loadMapThumb(mapThumbView);
-
 		// Sets up a connection to the database.
-		// db = GeoDBConnector.open(this);
+		db = GeoDBConnector.open(this);
+		
+		// Get the list of geo stamps
+		List<GeoStamp> stamps = db.getGeoStamps();
+		
+		// Checks if geo stamp has already been saved in the db.
+		// If it has then we will get the same one back, else
+		// we add it to the db.		
+		if(stamps.contains(geoStamp)) {
+			geoStamp = stamps.get(stamps.indexOf(geoStamp));
+			
+			// If the geo stamp was already saved we will use this flag
+			// in the other code to update the stamp
+			prevSaved = true;
+		} else {
+			db.addGeoStamp(geoStamp);			
+		}
+
+		// Load thumbnail map
+		loadMapThumb(mapThumbView);
 
 		recordButton.setOnClickListener(new OnClickListener() {
 
@@ -74,25 +93,9 @@ public class RecordTabView extends MapActivity {
 			}
 		});
 
-		saveButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-
-				// Save geostamp to db
-				// db.addGeoStamp(geoStamp);
-				edu.uoregon.MapTabView.db.add(geoStamp);
-
-				Toast.makeText(getBaseContext(), "Saved", Toast.LENGTH_LONG)
-						.show();
-
-				TabHost tabHost = edu.uoregon.Main.mTabHost;
-				tabHost.setCurrentTab(0);
-			}
-		});
-
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v) {				
 				TabHost tabHost = edu.uoregon.Main.mTabHost;
 				tabHost.setCurrentTab(0);
 			}
@@ -114,7 +117,13 @@ public class RecordTabView extends MapActivity {
 		mapControl.setZoom(18);
 
 		// Initialize icon
-		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
+		Drawable currLocIcon = null;
+		if(prevSaved) {
+			currLocIcon = getResources().getDrawable(R.drawable.green);			
+		} else {
+			currLocIcon = getResources().getDrawable(R.drawable.pin);			
+		}
+		
 		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
 				currLocIcon.getIntrinsicHeight());
 
@@ -137,5 +146,11 @@ public class RecordTabView extends MapActivity {
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		db.close();
+		super.onDestroy();
 	}
 }
