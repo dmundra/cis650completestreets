@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -136,6 +137,17 @@ public class RecordAudioView extends Activity{
 				}
 			}
 		});
+		
+		//this little bit just lets us switch our text to "play" when the audio is done
+	    mp.setOnCompletionListener(new OnCompletionListener(){
+
+			@Override
+            public void onCompletion(MediaPlayer arg0) {
+	            //we should switch over to play mode:
+				stopStartB.setText(startPlay);	            
+            }
+	    	
+	    });
 	}
 
 
