@@ -84,6 +84,7 @@ public class GeoDBConnector implements IGeoDB {
 				l.setLatitude(lat);
 				l.setLongitude(lon);
 				list.add(new GeoStamp(l,id));
+				cur.moveToNext();
 			}
 		}
 		return list;
@@ -111,6 +112,14 @@ public class GeoDBConnector implements IGeoDB {
 	 * @see IGeoDB
 	 */
 	@Override
+	public boolean addRecordingToGeoStamp(GeoStamp geoStamp, byte[] recording) {
+		return addRecordingToGeoStamp(geoStamp.getDatabaseID(), recording);
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
 	public boolean addPictureToGeoStamp(int geoStampID, byte[] picture) {
 		// We do not want to add a picture to a geostamp
 		// that does not exist in the database.
@@ -122,7 +131,7 @@ public class GeoDBConnector implements IGeoDB {
 		
 		long row = db.insert(TABLE_GEOPICTURE, null, values);
 		
-		// If the pictures was successfully inserted
+		// If the picture was successfully inserted
 		// we want to start creating a relation between the GeoStamp
 		// and the picture.
 		if (row != -1) {
@@ -141,6 +150,50 @@ public class GeoDBConnector implements IGeoDB {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public boolean addRecordingToGeoStamp(int geoStampID, byte[] recording) {
+		// We do not want to add a recording to a geostamp
+		// that does not exist in the database.
+		if (geoStampID == GeoStamp.newGeoStamp)
+			return false;
+		
+		ContentValues values = new ContentValues();
+		values.put(RECORDING_KEY_RECORDING, recording);
+		
+		long row = db.insert(TABLE_GEORECORDING, null, values);
+		
+		// If the recording was successfully inserted
+		// we want to start creating a relation between the GeoStamp
+		// and the recording.
+		if (row != -1) {
+			// Find the currently inserted recording id. 
+			Cursor c = db.query(TABLE_GEORECORDING, null, "rowid = " + row, null, null, null, null);
+			
+			// If it was found, create the proper relation.
+			if (c.moveToFirst()) {
+				int recID = c.getInt(c.getColumnIndex(KEY_ROWID));
+				ContentValues relation = new ContentValues();
+				relation.put(KEY_GEOSTAMP_ID, geoStampID);
+				relation.put(KEY_RECORDING_ID, recID);
+				
+				if (db.insert(TABLE_GEOSTAMP_RECORDING, null, relation) != -1)
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public void close() {
+		db.close();
 	}
 
 	/**

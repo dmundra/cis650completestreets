@@ -49,6 +49,27 @@ public interface IGeoDB {
 	 */
 	public abstract boolean addPictureToGeoStamp(int geoStampID, byte[] picture);
 	
-	// TODO I need to figure out what kind of object a picture and a recording is saved as.
-//	public abstract void addRecordingToGeoStamp(GeoStamp geoStamp, Recording recording);
+	/**
+	 * Adds a recording relation to the specified GeoStamp.
+	 * @param geoStamp
+	 * 		The GeoStamp that we want to add a recording to 
+	 * @param picture 
+	 * 		The bytes of a recording.
+	 * @return
+	 * 		True of the insertion succeeds, false otherwise 
+	 */
+	public abstract boolean addRecordingToGeoStamp(GeoStamp geoStamp, byte[] recording);
+	
+	/**
+	 * Adds a recording relation to the GeoStamp with the specified ID. 
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we want to add a recording to.
+	 * @param picture
+	 * 		The bytes of a recording.
+	 * @return
+	 * 		True of the insertion succeeds, false otherwise
+	 */
+	public abstract boolean addRecordingToGeoStamp(int geoStampID, byte[] recording);
+	
+	public abstract void close();
 }
