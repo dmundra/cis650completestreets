@@ -33,7 +33,7 @@ public class MapTabView extends MapActivity {
 	private MapView mapView;
 	private GeoPoint curLocPoint;
 	private MapController mapControl;
-	private static IGeoDB db;
+	private IGeoDB db;
 
 	// Represents current location that we will save
 	public static Location currentLocation;
@@ -42,9 +42,6 @@ public class MapTabView extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.maptabview);
-
-		// Sets up a connection to the database.
-		db = GeoDBConnector.open(this);
 
 		mapView = (MapView) findViewById(R.id.mapView);
 		// Show zoom in/out buttons
@@ -70,6 +67,9 @@ public class MapTabView extends MapActivity {
 	}
 
 	public void loadMap() {
+
+		// Sets up a connection to the database.
+		db = GeoDBConnector.open(this);
 		
 		// Initialize icon
 		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
@@ -114,6 +114,9 @@ public class MapTabView extends MapActivity {
 		mapControl.animateTo(curLocPoint);
 
 		mapView.invalidate();
+		
+		// Close db
+		db.close();
 	}
 
 	/**
@@ -152,11 +155,5 @@ public class MapTabView extends MapActivity {
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
-	}
-	
-	@Override
-	protected void onDestroy() {
-		db.close();
-		super.onDestroy();
 	}
 }

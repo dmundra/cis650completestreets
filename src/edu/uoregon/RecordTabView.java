@@ -5,6 +5,7 @@ import java.util.List;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -75,7 +76,8 @@ public class RecordTabView extends MapActivity {
 				Intent intent = new Intent(RecordTabView.this,
 						RecordAudioView.class);
 				
-				intent.putExtra("geoId", geoStamp.getDatabaseID());
+				intent.putExtra("geoId", new Integer(geoStamp.getDatabaseID()));
+				Log.d("testing", "sending: " + geoStamp.getDatabaseID());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 			}
@@ -95,7 +97,10 @@ public class RecordTabView extends MapActivity {
 
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
-			public void onClick(View v) {				
+			public void onClick(View v) {
+				
+				db.deleteGeoStamp(geoStamp);
+				
 				TabHost tabHost = edu.uoregon.Main.mTabHost;
 				tabHost.setCurrentTab(0);
 			}

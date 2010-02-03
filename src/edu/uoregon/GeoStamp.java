@@ -82,6 +82,15 @@ public class GeoStamp {
 	public int getDatabaseID() {
 		return databaseID;
 	}
+	
+	/**
+	 * sets the db id
+	 * @param id
+	 * 		the new id
+	 */
+	public void setDatabaseID(int id) {
+		databaseID = id;
+	}
 
 	/**
 	 * Return GeoPoint for this stamp

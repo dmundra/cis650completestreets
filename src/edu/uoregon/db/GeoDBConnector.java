@@ -46,8 +46,11 @@ public class GeoDBConnector implements IGeoDB {
 			// XXX Does not check for duplicate entries
 			// which are possible because latitude and longitude
 			// are not part of the primary key.
-			if (db.insert(TABLE_GEOSTAMP, null, values) != -1)
+			final long newId = db.insert(TABLE_GEOSTAMP, null, values);
+			if (newId != -1){
+				geoStamp.setDatabaseID((int)newId);
 				return true;
+			}
 		}
 		else
 			return updateGeoStamp(geoStamp);

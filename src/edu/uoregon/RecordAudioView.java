@@ -25,21 +25,23 @@ import android.widget.Toast;
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
 
-public class RecordAudioView extends Activity{
-	
-	//just for logging:
+public class RecordAudioView extends Activity {
+
+	// just for logging:
 	private static final String TAG = "RecordTabView";
-	//this is what we'll use to do our current recording:
+	// this is what we'll use to do our current recording:
 	private final MediaRecorder recorder = new MediaRecorder();
-	//this is what we'll use to play audio:
+	// this is what we'll use to play audio:
 	private final MediaPlayer mp = new MediaPlayer();
 	// this is our working directory for audio:
 	private static final String audioDir = Environment
 	        .getExternalStorageDirectory()
 	        + "/CompleteStreets/";
-	
-	private static String convertAudioToFile(String fileName, byte[] audio) {
 
+	// DB
+	private IGeoDB con;
+
+	private static String convertAudioToFile(String fileName, byte[] audio) {
 
 		// first clean out the old files:
 		for (File f : new File(audioDir).listFiles()) {
@@ -103,191 +105,200 @@ public class RecordAudioView extends Activity{
 
 		return ret;
 	}
-	
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordaudioview);
-		
-		final int geoId = getIntent().getIntExtra("huntItemID", -1);
-		
-		//TODO close connection at some point...
-		final IGeoDB con = GeoDBConnector.open(this);
+
+		final int geoId = (Integer) getIntent().getSerializableExtra("geoId");
+		Log.d(TAG, "geoId is: " + geoId);
+
+		// TODO close connection at some point...
+		con = GeoDBConnector.open(this);
 		final List<byte[]> rec = con.getRecordings(geoId);
 		Log.d(TAG, "size of rec: " + rec.size());
-		//for now we'll just use one audio per location:
-		final String fileName = convertAudioToFile("" + geoId, rec.size() > 0 ? rec.get(0) : null);
+		// for now we'll just use one audio per location:
+		final String fileName = convertAudioToFile("" + geoId,
+		        rec.size() > 0 ? rec.get(0) : null);
 
-		//our buttons:
+		// our buttons:
 		final Button backB = (Button) findViewById(R.id.backB);
 		final Button recordButton = (Button) findViewById(R.id.recordB);
-		
-		//these are for switching the text on the record button:
+
+		// these are for switching the text on the record button:
 		final String stopRecordingAudio = getString(R.string.audioStopRecording);
 		final String startRecordingAudio = getString(R.string.audioStartRecording);
 		final Button stopStartB = (Button) findViewById(R.id.playStopB);
-		
-		backB.setOnClickListener(new OnClickListener(){
+
+		backB.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
-				//return to our calling activity
+
+				// return to our calling activity
 				finish();
 			}
 		});
-		
-		recordButton.setOnClickListener(new OnClickListener(){
+
+		recordButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				
-				//start recording if our text is not stop taking audio:
-				if(!recordButton.getText().equals(stopRecordingAudio)){
-					//for now, we'll only have one audio per stamp
-					if(!setUpAudio(fileName)){
-						Toast.makeText(RecordAudioView.this, "error with the audio, check with support", Toast.LENGTH_LONG);
-					}else{
+
+				// start recording if our text is not stop taking audio:
+				if (!recordButton.getText().equals(stopRecordingAudio)) {
+					// for now, we'll only have one audio per stamp
+					if (!setUpAudio(fileName)) {
+						Toast.makeText(RecordAudioView.this,
+						        "error with the audio, check with support",
+						        Toast.LENGTH_LONG);
+					} else {
 						recorder.start();
 						recordButton.setText(stopRecordingAudio);
 					}
-				}else{
-					//stop recording
+				} else {
+					// stop recording
 					recorder.stop();
-	                recorder.reset();
-	                
-	                recordButton.setText(startRecordingAudio);
-	                
-	                //let's do a save:
-	                con.addRecordingToGeoStamp(geoId, convertFileToAudio(fileName));
+					recorder.reset();
 
-	                //now we want to be able to play the audio:   
-	                showAudio(fileName, stopStartB);
-	                
+					recordButton.setText(startRecordingAudio);
+
+					// let's do a save:
+					Log.d(TAG, "geoId: "
+					        + geoId
+					        + " return from addRecording: "
+					        + con.addRecordingToGeoStamp(geoId,
+					                convertFileToAudio(fileName)));
+
+					// now we want to be able to play the audio:
+					showAudio(fileName, stopStartB);
+
 				}
 			}
 		});
-		
-		
-		//play/stop button:
+
+		// play/stop button:
 		final String stopPlay = getString(R.string.audioStopPlay);
 		final String startPlay = getString(R.string.audioStartPlay);
-		
-		//default text:
+
+		// default text:
 		stopStartB.setText(startPlay);
-		
-		//TODO: get audio out of db and put it in file form
-		
-		//now we want to be able to play the audio:   
-        showAudio(fileName, stopStartB);
-		
-		stopStartB.setOnClickListener(new OnClickListener(){
-			public void onClick(View v){
-				//see if we are in play mode:
-				if(stopStartB.getText().equals(startPlay)){
-					//TODO: then play it:
-					try{
+
+		// TODO: get audio out of db and put it in file form
+
+		// now we want to be able to play the audio:
+		showAudio(fileName, stopStartB);
+
+		stopStartB.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				// see if we are in play mode:
+				if (stopStartB.getText().equals(startPlay)) {
+					// TODO: then play it:
+					try {
 						mp.reset();
-	                	mp.setDataSource(getAudioFilePath(fileName));
-	                	mp.prepare();
-	                	mp.start();
-	                	
-	                	stopStartB.setText(stopPlay);
-	                	
-					}catch(Exception e){
+						mp.setDataSource(getAudioFilePath(fileName));
+						mp.prepare();
+						mp.start();
+
+						stopStartB.setText(stopPlay);
+
+					} catch (Exception e) {
 						Log.e(TAG, "couldn't play the sound: " + e.toString());
 					}
-	                
-				}else{
-					
-					try{
+
+				} else {
+
+					try {
 						mp.stop();
-					}catch(IllegalStateException e){
-						//something went wrong with playing it?
+					} catch (IllegalStateException e) {
+						// something went wrong with playing it?
 						Log.e(TAG, "on stop: " + e.toString());
 					}
-					
+
 					stopStartB.setText(startPlay);
 				}
 			}
 		});
-		
-		//this little bit just lets us switch our text to "play" when the audio is done
-	    mp.setOnCompletionListener(new OnCompletionListener(){
+
+		// this little bit just lets us switch our text to "play" when the audio
+		// is done
+		mp.setOnCompletionListener(new OnCompletionListener() {
 
 			@Override
-            public void onCompletion(MediaPlayer arg0) {
-	            //we should switch over to play mode:
-				stopStartB.setText(startPlay);	            
-            }
-	    	
-	    });
+			public void onCompletion(MediaPlayer arg0) {
+				// we should switch over to play mode:
+				stopStartB.setText(startPlay);
+			}
+
+		});
 	}
 
+	@Override
+	protected void onDestroy() {
+		con.close();
+		super.onDestroy();
+	}
 
-	
-	
-	
-    
 	/**
-	 * this is a helper for getting back the file object for the audio recording we have
+	 * this is a helper for getting back the file object for the audio recording
+	 * we have
 	 */
-	private static String getAudioFilePath(String fileName){
-		
+	private static String getAudioFilePath(String fileName) {
+
 		return audioDir + fileName + ".3gp";
 	}
-	
+
 	/**
-     * sets up our recorder, not sure if this is a good way to do it...
-     * @return false if we know something went wrong
-     */
+	 * sets up our recorder, not sure if this is a good way to do it...
+	 * 
+	 * @return false if we know something went wrong
+	 */
 	private boolean setUpAudio(String fileName) {
 		ContentValues values = new ContentValues(3);
 
-        final String path = getAudioFilePath(fileName);
-        try 
-        { 
-        	File dir = new File(audioDir); 
-        	if(!dir.exists() && !dir.mkdirs()){
-        		throw new IOException("couldn't make directory? " + dir.getAbsolutePath());
-        	}
-        	
-        }
-        catch (IOException e) 
-        {
-            Log.e(TAG,"sdcard access error: " + e.toString());
-            return false;
-        }
-        
-        values.put(MediaStore.MediaColumns.TITLE, "my title " + fileName);
-        values.put(MediaStore.MediaColumns.DATE_ADDED, System.currentTimeMillis() / 1000);
-        
-        recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-        recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-        recorder.setOutputFile(path);
-        
-        try{
-    		recorder.prepare();	
-        }catch(Exception e){
-        	final String log = "Exception preparing record: " + e.toString();
-        	Log.d(TAG, log);
-        	//Toast.makeText(this, log, Toast.LENGTH_LONG);
-        	return false;
-        }
-        
-        //if we get here we hope that we can go:
-        return true;
-    }
-	
+		final String path = getAudioFilePath(fileName);
+		try {
+			File dir = new File(audioDir);
+			if (!dir.exists() && !dir.mkdirs()) {
+				throw new IOException("couldn't make directory? "
+				        + dir.getAbsolutePath());
+			}
+
+		} catch (IOException e) {
+			Log.e(TAG, "sdcard access error: " + e.toString());
+			return false;
+		}
+
+		values.put(MediaStore.MediaColumns.TITLE, "my title " + fileName);
+		values.put(MediaStore.MediaColumns.DATE_ADDED, System
+		        .currentTimeMillis() / 1000);
+
+		recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+		recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+		recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+		recorder.setOutputFile(path);
+
+		try {
+			recorder.prepare();
+		} catch (Exception e) {
+			final String log = "Exception preparing record: " + e.toString();
+			Log.d(TAG, log);
+			// Toast.makeText(this, log, Toast.LENGTH_LONG);
+			return false;
+		}
+
+		// if we get here we hope that we can go:
+		return true;
+	}
+
 	/**
 	 * just a helper for showing the audio button
 	 */
 	private void showAudio(String fileName, Button toShow) {
-		if(new File(getAudioFilePath(fileName)).exists()){
-			//something is there, let's say we can play:
-        	toShow.setVisibility(View.VISIBLE);
+		if (new File(getAudioFilePath(fileName)).exists()) {
+			// something is there, let's say we can play:
+			toShow.setVisibility(View.VISIBLE);
 		}
-    }
+	}
 
 }
-
