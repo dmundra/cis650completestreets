@@ -16,6 +16,7 @@ import edu.uoregon.GeoStamp;
  * This class connects to the database storing the all GeoStamps.
  * 
  * 1/31/2010 -- David -- Now connects to the database to retrieve GeoStamps.
+ * 2/2/2010 -- David -- simplified the database design.
  */
 public class GeoDBConnector implements IGeoDB {
 	// The context of this connector.
@@ -127,28 +128,32 @@ public class GeoDBConnector implements IGeoDB {
 			return false;
 		
 		ContentValues values = new ContentValues();
+		values.put(KEY_GEOSTAMP_ID, geoStampID);
 		values.put(PICTURE_KEY_PICTURE, picture);
 		
-		long row = db.insert(TABLE_GEOPICTURE, null, values);
+		if (db.insert(TABLE_GEOSTAMP_PICTURE, null, values) != -1)
+			return true;
+		
+//		long row = db.insert(TABLE_GEOPICTURE, null, values);
 		
 		// If the picture was successfully inserted
 		// we want to start creating a relation between the GeoStamp
 		// and the picture.
-		if (row != -1) {
-			// Find the currently inserted picture id. 
-			Cursor c = db.query(TABLE_GEOPICTURE, null, "rowid = " + row, null, null, null, null);
-			
-			// If it was found, create the proper relation.
-			if (c.moveToFirst()) {
-				int picID = c.getInt(c.getColumnIndex(KEY_ROWID));
-				ContentValues relation = new ContentValues();
-				relation.put(KEY_GEOSTAMP_ID, geoStampID);
-				relation.put(KEY_PICTURE_ID, picID);
-				
-				if (db.insert(TABLE_GEOSTAMP_PICTURE, null, relation) != -1)
-					return true;
-			}
-		}
+//		if (row != -1) {
+//			// Find the currently inserted picture id. 
+//			Cursor c = db.query(TABLE_GEOPICTURE, null, "rowid = " + row, null, null, null, null);
+//			
+//			// If it was found, create the proper relation.
+//			if (c.moveToFirst()) {
+//				int picID = c.getInt(c.getColumnIndex(KEY_ROWID));
+//				ContentValues relation = new ContentValues();
+//				relation.put(KEY_GEOSTAMP_ID, geoStampID);
+//				relation.put(KEY_PICTURE_ID, picID);
+//				
+//				if (db.insert(TABLE_GEOSTAMP_PICTURE, null, relation) != -1)
+//					return true;
+//			}
+//		}
 		return false;
 	}
 	
@@ -163,29 +168,67 @@ public class GeoDBConnector implements IGeoDB {
 			return false;
 		
 		ContentValues values = new ContentValues();
+		values.put(KEY_GEOSTAMP_ID, geoStampID);
 		values.put(RECORDING_KEY_RECORDING, recording);
 		
-		long row = db.insert(TABLE_GEORECORDING, null, values);
+		if (db.insert(TABLE_GEOSTAMP_RECORDING, null, values) != -1)
+			return true;
+		
+//		long row = db.insert(TABLE_GEORECORDING, null, values);
 		
 		// If the recording was successfully inserted
 		// we want to start creating a relation between the GeoStamp
 		// and the recording.
-		if (row != -1) {
-			// Find the currently inserted recording id. 
-			Cursor c = db.query(TABLE_GEORECORDING, null, "rowid = " + row, null, null, null, null);
-			
-			// If it was found, create the proper relation.
-			if (c.moveToFirst()) {
-				int recID = c.getInt(c.getColumnIndex(KEY_ROWID));
-				ContentValues relation = new ContentValues();
-				relation.put(KEY_GEOSTAMP_ID, geoStampID);
-				relation.put(KEY_RECORDING_ID, recID);
-				
-				if (db.insert(TABLE_GEOSTAMP_RECORDING, null, relation) != -1)
-					return true;
-			}
-		}
+//		if (row != -1) {
+//			// Find the currently inserted recording id. 
+//			Cursor c = db.query(TABLE_GEORECORDING, null, "rowid = " + row, null, null, null, null);
+//			
+//			// If it was found, create the proper relation.
+//			if (c.moveToFirst()) {
+//				int recID = c.getInt(c.getColumnIndex(KEY_ROWID));
+//				ContentValues relation = new ContentValues();
+//				relation.put(KEY_GEOSTAMP_ID, geoStampID);
+//				relation.put(KEY_RECORDING_ID, recID);
+//				
+//				if (db.insert(TABLE_GEOSTAMP_RECORDING, null, relation) != -1)
+//					return true;
+//			}
+//		}
 		return false;
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public void deleteAllGeoStamps() {
+		// Just delete everything in there.
+		db.delete(TABLE_GEOSTAMP, null, null);
+//		db.delete(TABLE_GEOPICTURE, null, null);
+//		db.delete(TABLE_GEORECORDING, null, null);
+		db.delete(TABLE_GEOSTAMP_PICTURE, null, null);
+		db.delete(TABLE_GEOSTAMP_RECORDING, null, null);
+	}
+
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public void deleteGeoStamp(GeoStamp geoStamp) {
+		deleteGeoStamp(geoStamp.getDatabaseID());
+	}
+
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public void deleteGeoStamp(int geoStampID) {
+		// Delete the geostamp
+		db.delete(TABLE_GEOSTAMP, KEY_ROWID + " = " + geoStampID, null);
+
+		// Delete relations with pictures and recordings
+		db.delete(TABLE_GEOSTAMP_PICTURE, KEY_GEOSTAMP_ID + " = " + geoStampID, null);
+		db.delete(TABLE_GEOSTAMP_RECORDING, KEY_GEOSTAMP_ID + " = " + geoStampID, null);
 	}
 	
 	/**
@@ -222,10 +265,8 @@ public class GeoDBConnector implements IGeoDB {
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(GEOSTAMP_CREATE);
 			db.execSQL(PICTURE_CREATE);
-			db.execSQL(GEOSTAMP_PICTURE_CREATE);
-			
-			// TODO Include the other tables.
-//			db.execSQL(RECORDING_CREATE);
+//			db.execSQL(GEOSTAMP_PICTURE_CREATE);
+			db.execSQL(RECORDING_CREATE);
 //			db.execSQL(GEOSTAMP_RECORDING_CREATE);
 		}
 
@@ -247,16 +288,16 @@ public class GeoDBConnector implements IGeoDB {
 	protected static final String RECORDING_KEY_RECORDING = "recording";
 	
 	// Relation fields
-	protected static final String KEY_RECORDING_ID = "recording_id";
-	protected static final String KEY_PICTURE_ID = "picture_id";
+//	protected static final String KEY_RECORDING_ID = "recording_id";
+//	protected static final String KEY_PICTURE_ID = "picture_id";
 	protected static final String KEY_GEOSTAMP_ID = "geostamp_id";
 
 	private static final String DB_NAME = "COMPLETE_STREETS";
 	
 	// Tables
 	private static final String TABLE_GEOSTAMP = "geo_stamp";
-	private static final String TABLE_GEOPICTURE = "geo_picture";
-	private static final String TABLE_GEORECORDING = "geo_recording";
+//	private static final String TABLE_GEOPICTURE = "geo_picture";
+//	private static final String TABLE_GEORECORDING = "geo_recording";
 	
 	// Relations
 	private static final String TABLE_GEOSTAMP_PICTURE = "geo_stamp_picture";
@@ -272,24 +313,38 @@ public class GeoDBConnector implements IGeoDB {
 		GEOSTAMP_KEY_LONGITUDE+ " DOUBLE NOT NULL)";
 	
 	private static final String PICTURE_CREATE = 
-		"CREATE TABLE " + TABLE_GEOPICTURE +
-		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-		PICTURE_KEY_PICTURE + " BLOB NOT NULL)";
-	
-	private static final String RECORDING_CREATE = 
-		"CREATE TABLE " + TABLE_GEORECORDING +
-		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-		PICTURE_KEY_PICTURE + " BLOB NOT NULL)";
-	
-	private static final String GEOSTAMP_PICTURE_CREATE = 
 		"CREATE TABLE " + TABLE_GEOSTAMP_PICTURE +
-		" (" + KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
-		KEY_PICTURE_ID + " INTEGER NOT NULL, " +
-		"PRIMARY KEY (" + KEY_GEOSTAMP_ID + ", " + KEY_PICTURE_ID + "))";
-	
-	private static final String GEOSTAMP_RECORDING_CREATE = 
+		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+		KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
+		PICTURE_KEY_PICTURE + " BLOB NOT NULL)";
+
+	private static final String RECORDING_CREATE = 
 		"CREATE TABLE " + TABLE_GEOSTAMP_RECORDING +
-		" (" + KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
-		KEY_RECORDING_ID + " INTEGER NOT NULL, " +
-		"PRIMARY KEY (" + KEY_GEOSTAMP_ID + ", " + KEY_RECORDING_ID + "))";
+		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+		KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
+		RECORDING_KEY_RECORDING + " BLOB NOT NULL)";
+	
+	// Original create strings
+//	private static final String PICTURE_CREATE = 
+//		"CREATE TABLE " + TABLE_GEOPICTURE +
+//		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//		PICTURE_KEY_PICTURE + " BLOB NOT NULL)";
+//	
+//	private static final String RECORDING_CREATE = 
+//		"CREATE TABLE " + TABLE_GEORECORDING +
+//		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+//		RECORDING_KEY_RECORDING + " BLOB NOT NULL)";
+	
+//	
+//	private static final String GEOSTAMP_PICTURE_CREATE = 
+//		"CREATE TABLE " + TABLE_GEOSTAMP_PICTURE +
+//		" (" + KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
+//		KEY_PICTURE_ID + " INTEGER NOT NULL, " +
+//		"PRIMARY KEY (" + KEY_GEOSTAMP_ID + ", " + KEY_PICTURE_ID + "))";
+//	
+//	private static final String GEOSTAMP_RECORDING_CREATE = 
+//		"CREATE TABLE " + TABLE_GEOSTAMP_RECORDING +
+//		" (" + KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
+//		KEY_RECORDING_ID + " INTEGER NOT NULL, " +
+//		"PRIMARY KEY (" + KEY_GEOSTAMP_ID + ", " + KEY_RECORDING_ID + "))";
 }

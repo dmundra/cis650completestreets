@@ -71,5 +71,27 @@ public interface IGeoDB {
 	 */
 	public abstract boolean addRecordingToGeoStamp(int geoStampID, byte[] recording);
 	
+	/**
+	 * Closes the database
+	 */
 	public abstract void close();
+	
+	/**
+	 * Deletes all geostamps from the databse.
+	 */
+	public abstract void deleteAllGeoStamps();
+	
+	/**
+	 * Deletes a specific GeoStamp from the database.
+	 * @param geoStamp
+	 * 			The GeoStamp to delete.
+	 */
+	public abstract void deleteGeoStamp(GeoStamp geoStamp);
+	
+	/**
+	 * Deletes a specific GeoStamp from the databse.
+	 * @param geoStampID
+	 * 			The ID of the GeoStamp to delete from the database.
+	 */
+	public abstract void deleteGeoStamp(int geoStampID);
 }
