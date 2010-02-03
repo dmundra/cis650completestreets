@@ -1,9 +1,11 @@
 package edu.uoregon;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 
@@ -20,6 +22,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Toast;
+import edu.uoregon.db.GeoDBConnector;
+import edu.uoregon.db.IGeoDB;
 
 public class RecordAudioView extends Activity{
 	
@@ -29,6 +33,76 @@ public class RecordAudioView extends Activity{
 	private final MediaRecorder recorder = new MediaRecorder();
 	//this is what we'll use to play audio:
 	private final MediaPlayer mp = new MediaPlayer();
+	// this is our working directory for audio:
+	private static final String audioDir = Environment
+	        .getExternalStorageDirectory()
+	        + "/CompleteStreets/";
+	
+	private static String convertAudioToFile(String fileName, byte[] audio) {
+
+
+		// first clean out the old files:
+		for (File f : new File(audioDir).listFiles()) {
+			if (!f.delete()) {
+				// something went wrong...
+				final String log = "Something went wrong, we couldn't delete the file: "
+				        + f.getAbsolutePath();
+				Log.d(TAG, log);
+			}
+		}
+
+		if (audio != null && audio.length > 0) {
+			File f = new File(getAudioFilePath(fileName));
+
+			FileOutputStream fos = null;
+			final String log = "Something went wrong writing the file ";
+			try {
+				fos = new FileOutputStream(f);
+				IOUtils.write(audio, fos);
+			} catch (FileNotFoundException e) {
+				Log.d(TAG, log + e.toString());
+			} catch (IOException e) {
+				Log.d(TAG, log + e.toString());
+			} finally {
+				if (fos != null) {
+					try {
+						fos.close();
+					} catch (IOException e) {
+						// ignore
+					}
+				}
+			}
+		}
+
+		// just return the file name we were given
+		return fileName;
+
+	}
+
+	private static byte[] convertFileToAudio(String fileName) {
+		byte[] ret = new byte[0];
+
+		final String log = "Something went wrong writing the file ";
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(getAudioFilePath(fileName));
+			ret = IOUtils.toByteArray(fis);
+		} catch (FileNotFoundException e) {
+			Log.d(TAG, log + e.toString());
+		} catch (IOException e) {
+			Log.d(TAG, log + e.toString());
+		} finally {
+			if (fis != null) {
+				try {
+					fis.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
+		}
+
+		return ret;
+	}
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -36,11 +110,14 @@ public class RecordAudioView extends Activity{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordaudioview);
 		
-		//our geo info
-		final GeoStamp geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
+		final int geoId = getIntent().getIntExtra("huntItemID", -1);
 		
-		//for now we'll just use one file at a time:
-		final String fileName = "" + geoStamp.getDatabaseID();
+		//TODO close connection at some point...
+		final IGeoDB con = GeoDBConnector.open(this);
+		final List<byte[]> rec = con.getRecordings(geoId);
+		Log.d(TAG, "size of rec: " + rec.size());
+		//for now we'll just use one audio per location:
+		final String fileName = convertAudioToFile("" + geoId, rec.size() > 0 ? rec.get(0) : null);
 
 		//our buttons:
 		final Button backB = (Button) findViewById(R.id.backB);
@@ -54,13 +131,8 @@ public class RecordAudioView extends Activity{
 		backB.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v) {
-				//first let's save our current audio file (if we have one):
-				if(new File(getAudioFilePath(fileName)[1]).exists()){
-					//something is there:
-		        	//TODO: save to db
-				}
 				
-				//now return to our caller
+				//return to our calling activity
 				finish();
 			}
 		});
@@ -83,9 +155,10 @@ public class RecordAudioView extends Activity{
 					recorder.stop();
 	                recorder.reset();
 	                
-	                //do we want to save right now?
-	                
 	                recordButton.setText(startRecordingAudio);
+	                
+	                //let's do a save:
+	                con.addRecordingToGeoStamp(geoId, convertFileToAudio(fileName));
 
 	                //now we want to be able to play the audio:   
 	                showAudio(fileName, stopStartB);
@@ -114,7 +187,7 @@ public class RecordAudioView extends Activity{
 					//TODO: then play it:
 					try{
 						mp.reset();
-	                	mp.setDataSource(getAudioFilePath(fileName)[1]);
+	                	mp.setDataSource(getAudioFilePath(fileName));
 	                	mp.prepare();
 	                	mp.start();
 	                	
@@ -153,20 +226,14 @@ public class RecordAudioView extends Activity{
 
 	
 	
-	private static byte[] getAudioFileByes(String fileName) throws FileNotFoundException, IOException{
-		return IOUtils.toByteArray(new FileReader(getAudioFilePath(fileName)[1]), "UTF8");
-	}
+	
     
 	/**
 	 * this is a helper for getting back the file object for the audio recording we have
 	 */
-	private static String[] getAudioFilePath(String fileName){
-		final String[] ret = new String[2];
+	private static String getAudioFilePath(String fileName){
 		
-		ret[0] = Environment.getExternalStorageDirectory() + "/CompleteStreets/";
-		ret[1] = ret[0] + fileName + ".3gp";
-		
-		return ret;
+		return audioDir + fileName + ".3gp";
 	}
 	
 	/**
@@ -176,12 +243,10 @@ public class RecordAudioView extends Activity{
 	private boolean setUpAudio(String fileName) {
 		ContentValues values = new ContentValues(3);
 
-        final String path;
+        final String path = getAudioFilePath(fileName);
         try 
         { 
-        	final String[] paths = getAudioFilePath(fileName);
-        	File dir = new File(paths[0]);
-        	path = paths[1]; 
+        	File dir = new File(audioDir); 
         	if(!dir.exists() && !dir.mkdirs()){
         		throw new IOException("couldn't make directory? " + dir.getAbsolutePath());
         	}
@@ -218,7 +283,7 @@ public class RecordAudioView extends Activity{
 	 * just a helper for showing the audio button
 	 */
 	private void showAudio(String fileName, Button toShow) {
-		if(new File(getAudioFilePath(fileName)[1]).exists()){
+		if(new File(getAudioFilePath(fileName)).exists()){
 			//something is there, let's say we can play:
         	toShow.setVisibility(View.VISIBLE);
 		}

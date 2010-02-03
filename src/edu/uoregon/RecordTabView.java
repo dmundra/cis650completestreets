@@ -74,8 +74,8 @@ public class RecordTabView extends MapActivity {
 				// take us to the record audio page:
 				Intent intent = new Intent(RecordTabView.this,
 						RecordAudioView.class);
-				// TODO: pass in id
-				// intent.putExtra("id", id);
+				
+				intent.putExtra("geoId", geoStamp.getDatabaseID());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 			}

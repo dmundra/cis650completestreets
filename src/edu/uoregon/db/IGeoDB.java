@@ -72,6 +72,15 @@ public interface IGeoDB {
 	public abstract boolean addRecordingToGeoStamp(int geoStampID, byte[] recording);
 	
 	/**
+	 * Returns a list of recording from the db that match the given ID
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we will use to match against recording
+	 * @return
+	 * 		The list of recordings that match the given geoStampID
+	 */
+	public abstract List<byte[]> getRecordings(int geoStampID);
+	
+	/**
 	 * Closes the database
 	 */
 	public abstract void close();

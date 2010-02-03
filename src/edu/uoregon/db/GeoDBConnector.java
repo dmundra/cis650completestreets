@@ -198,6 +198,26 @@ public class GeoDBConnector implements IGeoDB {
 	}
 	
 	/**
+	 * not sure what I'm doing here - Anthony
+	 * @see IGeoDB
+	 */
+	public List<byte[]> getRecordings(int geoStampID){
+		Cursor cur = db.query(TABLE_GEOSTAMP_RECORDING, new String[]{RECORDING_KEY_RECORDING}, KEY_GEOSTAMP_ID + " = " + geoStampID, null, null, null, KEY_ROWID);
+		ArrayList<byte[]> list = new ArrayList<byte[]>();
+		
+		// If there are some recordings in there
+		if (cur.moveToFirst()) {
+			
+			// Go through all the recordings 
+			while (!cur.isAfterLast()) {
+				list.add(cur.getBlob(cur.getColumnIndex(RECORDING_KEY_RECORDING)));
+				cur.moveToNext();
+			}
+		}
+		return list;
+	}
+	
+	/**
 	 * @see IGeoDB
 	 */
 	@Override
