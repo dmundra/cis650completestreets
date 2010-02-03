@@ -88,6 +88,7 @@ public class GeoDBConnector implements IGeoDB {
 				cur.moveToNext();
 			}
 		}
+		cur.close();
 		return list;
 	}
 
@@ -214,6 +215,7 @@ public class GeoDBConnector implements IGeoDB {
 				cur.moveToNext();
 			}
 		}
+		cur.close();
 		return list;
 	}
 	
