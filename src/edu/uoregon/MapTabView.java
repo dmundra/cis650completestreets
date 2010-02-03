@@ -149,7 +149,7 @@ public class MapTabView extends MapActivity {
 		// Current location interval time is set to zero so we should
 		// see constant updates if the location changes
 		// TODO: Test on real phone, drains a lot of battery
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, ll);
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, ll);
 	}
 
 	@Override
