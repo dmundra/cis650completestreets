@@ -169,6 +169,11 @@ public class RecordAudioView extends Activity {
 					        + " return from addRecording: "
 					        + con.addRecordingToGeoStamp(geoId,
 					                convertFileToAudio(fileName)));
+					
+					// If saved successfully make this true to display a checkmark
+					// TODO: Need to check if saved in db
+					edu.uoregon.RecordTabView.recordCheck
+							.setVisibility(View.VISIBLE);
 
 					// now we want to be able to play the audio:
 					showAudio(fileName, stopStartB);

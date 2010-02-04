@@ -18,78 +18,96 @@ import android.view.Window;
  * Inspired by the API demos.
  */
 public class TakePictureView extends Activity {
-    private CameraPreview mPreview;
-    private IGeoDB db;
-    private int geoStampID;
+	private CameraPreview mPreview;
+	private IGeoDB db;
+	private int geoStampID;
 
-    @Override
-        protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
 
-        // Hide the window title.
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
-        // Set up the db
-        db = GeoDBConnector.open(this);
-        
-        // Get the geoStampID from the intent
-        geoStampID = getIntent().getIntExtra("geoStampID", -1);
+		// Hide the window title.
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        // Create our Preview view and set it as the content of our activity.
-        mPreview = new CameraPreview(this);
-        setContentView(mPreview);
-    }
+		// Set up the db
+		db = GeoDBConnector.open(this);
 
-    private class CameraPreview extends SurfaceView implements SurfaceHolder.Callback, Camera.PictureCallback, View.OnClickListener {
-        SurfaceHolder mHolder;
-        Camera mCamera;
+		// Get the geoStampID from the intent
+		geoStampID = getIntent().getIntExtra("geoStampID", -1);
 
-        CameraPreview(Context context) {
-            super(context);
+		// Create our Preview view and set it as the content of our activity.
+		mPreview = new CameraPreview(this);
+		setContentView(mPreview);
+	}
 
-            // Install a SurfaceHolder.Callback so we get notified when the
-            // underlying surface is created and destroyed.
-            mHolder = getHolder();
-            mHolder.addCallback(this);
-            mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-            this.setOnClickListener(this);
-        }
+	@Override
+	protected void onDestroy() {
+		db.close();
+		super.onDestroy();
+	}
 
-        public void surfaceCreated(SurfaceHolder holder) {
-            // The Surface has been created, acquire the camera and tell it where
-            // to draw.
-            mCamera = Camera.open();
-            try {
-               mCamera.setPreviewDisplay(holder);
-            } catch (IOException exception) {
-                mCamera.release();
-                mCamera = null;
-                // TODO: add more exception handling logic here
-            }
-        }
+	private class CameraPreview extends SurfaceView implements
+			SurfaceHolder.Callback, Camera.PictureCallback,
+			View.OnClickListener {
+		SurfaceHolder mHolder;
+		Camera mCamera;
 
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            // Surface will be destroyed when we return, so stop the preview.
-            // Because the CameraDevice object is not a shared resource, it's very
-            // important to release it when the activity is paused.
-            mCamera.stopPreview();
-            mCamera.release();
-            mCamera = null;
-        }
+		CameraPreview(Context context) {
+			super(context);
 
-        public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-            // Now that the size is known, set up the camera parameters and begin
-            // the preview.
-            Camera.Parameters parameters = mCamera.getParameters();
-            parameters.setPreviewSize(w, h);
-            mCamera.setParameters(parameters);
-            mCamera.startPreview();
-        }
+			// Install a SurfaceHolder.Callback so we get notified when the
+			// underlying surface is created and destroyed.
+			mHolder = getHolder();
+			mHolder.addCallback(this);
+			mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+			this.setOnClickListener(this);
+		}
+
+		public void surfaceCreated(SurfaceHolder holder) {
+			// The Surface has been created, acquire the camera and tell it
+			// where
+			// to draw.
+			mCamera = Camera.open();
+			try {
+				mCamera.setPreviewDisplay(holder);
+			} catch (IOException exception) {
+				mCamera.release();
+				mCamera = null;
+				// TODO: add more exception handling logic here
+			}
+		}
+
+		public void surfaceDestroyed(SurfaceHolder holder) {
+			// Surface will be destroyed when we return, so stop the preview.
+			// Because the CameraDevice object is not a shared resource, it's
+			// very
+			// important to release it when the activity is paused.
+			mCamera.stopPreview();
+			mCamera.release();
+			mCamera = null;
+		}
+
+		public void surfaceChanged(SurfaceHolder holder, int format, int w,
+				int h) {
+			// Now that the size is known, set up the camera parameters and
+			// begin
+			// the preview.
+			Camera.Parameters parameters = mCamera.getParameters();
+			parameters.setPreviewSize(w, h);
+			mCamera.setParameters(parameters);
+			mCamera.startPreview();
+		}
 
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
-			if (geoStampID != -1)
-				db.addPictureToGeoStamp(geoStampID, data);
+			if (geoStampID != -1) {
+				boolean saved = db.addPictureToGeoStamp(geoStampID, data);
+
+				// If saved successfully make this true to display a checkmark
+				if (saved)
+					edu.uoregon.RecordTabView.pictureCheck
+							.setVisibility(View.VISIBLE);
+			}
 		}
 
 		@Override
@@ -97,5 +115,6 @@ public class TakePictureView extends Activity {
 			mCamera.takePicture(null, null, this);
 			finish();
 		}
-    }
+
+	}
 }

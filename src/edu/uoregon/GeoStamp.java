@@ -66,11 +66,11 @@ public class GeoStamp {
 
 	/**
 	 * Return a string representation of location
-	 * 
+	 * GeoStamp: (id,latitude,longitude)
 	 * @return - String
 	 */
 	public String toString() {
-		return "GeoStamp: (" + loc.getLatitude() + "," + loc.getLongitude()
+		return "GeoStamp: (" + databaseID + "," + loc.getLatitude() + "," + loc.getLongitude()
 				+ ")";
 	}
 

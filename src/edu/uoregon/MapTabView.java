@@ -9,6 +9,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -31,12 +32,13 @@ public class MapTabView extends MapActivity {
 	public static LocationManager lm;
 	public static LocationListener ll;
 	private MapView mapView;
-	private GeoPoint curLocPoint;
 	private MapController mapControl;
 	private IGeoDB db;
+	private static boolean locationEnabled = false;
 
 	// Represents current location that we will save
 	public static Location currentLocation;
+	private static GeoPoint curLocPoint;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -49,28 +51,38 @@ public class MapTabView extends MapActivity {
 		// Standard view of the map(map/sat)
 		mapView.setSatellite(true);
 
-		// Initialize the location manager
-		initLocationManager();
-		// Set current location
-		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
 		mapControl.setZoom(18);
 
-		// Pin for current location
-		curLocPoint = new GeoPoint((int) (currentLocation.getLatitude() * 1E6),
-				(int) (currentLocation.getLongitude() * 1E6));
+		// Initialize location manager and get current location and
+		// current location geo point. Should do this only once when
+		// application starts and then the location manager should
+		// manage the location changes.
+		if (!locationEnabled) {
+			initLocationManager();
+			Log.d("MapTabViewLog", "Load location manager (only once)");
+			currentLocation = lm
+					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			Log.d("MapTabViewLog", "Load current location: " + currentLocation);
+			curLocPoint = new GeoPoint(
+					(int) (currentLocation.getLatitude() * 1E6),
+					(int) (currentLocation.getLongitude() * 1E6));
+			Log.d("MapTabViewLog", "Load current geo point: " + curLocPoint);
+
+			locationEnabled = true;
+		}
 
 		// Load map with all pins
 		loadMap();
 	}
 
 	public void loadMap() {
+		Log.d("MapTabViewLog", "Load Map");
 
 		// Sets up a connection to the database.
 		db = GeoDBConnector.open(this);
-		
+
 		// Initialize icon
 		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
 		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
@@ -89,14 +101,15 @@ public class MapTabView extends MapActivity {
 		boolean currLocNotSaved = true;
 		while (pins.hasNext()) {
 			GeoStamp next = pins.next();
+			Log.d("MapTabViewLog", "Load saved geostamp: " + next);
 			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
 			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
 					"Saved Location", null);
 			nextOverlay.addItem(nextOverlayItem);
 			listOfOverlays.add(nextOverlay);
-			
+
 			GeoStamp currLoc = new GeoStamp(currentLocation);
-			if(next.equals(currLoc)) {
+			if (next.equals(currLoc)) {
 				currLocNotSaved = false;
 			}
 		}
@@ -114,7 +127,7 @@ public class MapTabView extends MapActivity {
 		mapControl.animateTo(curLocPoint);
 
 		mapView.invalidate();
-		
+
 		// Close db
 		db.close();
 	}
@@ -130,9 +143,11 @@ public class MapTabView extends MapActivity {
 			public void onLocationChanged(Location newLocation) {
 				currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				Log.d("MapTabViewLog", "Location updated: " + currentLocation);
 				curLocPoint = new GeoPoint(
 						(int) (currentLocation.getLatitude() * 1E6),
 						(int) (currentLocation.getLongitude() * 1E6));
+				Log.d("MapTabViewLog", "Geopoint updated: " + curLocPoint);
 				loadMap();
 			}
 
@@ -148,7 +163,6 @@ public class MapTabView extends MapActivity {
 
 		// Current location interval time is set to zero so we should
 		// see constant updates if the location changes
-		// TODO: Test on real phone, drains a lot of battery
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, ll);
 	}
 

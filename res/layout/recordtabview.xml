@@ -8,17 +8,26 @@
 		android:layout_height="wrap_content" android:width="125px"
 		android:layout_marginTop="50px" android:layout_marginLeft="10px"
 		android:id="@+id/recordButton" android:text="@string/audioStartRecording"></Button>
-	<Button android:layout_width="wrap_content"
+	<ImageView android:layout_toRightOf="@+id/recordButton" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/recordCheck" android:src="@drawable/check" android:layout_alignTop="@+id/recordButton" android:layout_marginTop="5px" android:visibility="invisible"></ImageView><Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:width="125px"
 		android:id="@+id/pictureButton" android:text="Take Picture"
 		android:layout_marginLeft="10px" android:layout_marginTop="110px"></Button>
-	
+
+	<ImageView android:layout_toRightOf="@+id/pictureButton" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/pictureCheck" android:layout_alignTop="@+id/pictureButton" android:src="@drawable/check" android:layout_marginTop="4px" android:visibility="invisible"></ImageView><ImageView android:id="@+id/thumbImage" android:src="@drawable/icon"
+		android:layout_height="100px" android:layout_width="100px"
+		android:layout_marginLeft="220px" android:layout_below="@+id/mapThumbView"
+		android:layout_marginTop="20px"></ImageView>
 	<Button android:layout_width="wrap_content"
 		android:layout_toRightOf="@+id/saveButton" android:layout_height="wrap_content"
-		android:id="@+id/cancelButton" android:text="Cancel"
-		android:layout_marginTop="200px" android:width="75px"
-		android:layout_marginLeft="10px"></Button>
+		android:id="@+id/cancelButton" android:text="Cancel" android:width="75px"
+		android:layout_marginLeft="10px" android:layout_marginTop="180px"></Button>
 
 	<com.google.android.maps.MapView
-		android:apiKey="0Ksx_oqpYl3agOIChMpnMPaGkNvo0QTv6dHcV-w" android:id="@+id/mapThumbView" android:layout_height="100px" android:layout_width="100px" android:layout_marginLeft="220px"/>
+		android:apiKey="0Ksx_oqpYl3agOIChMpnMPaGkNvo0QTv6dHcV-w" android:id="@+id/mapThumbView"
+		android:layout_height="100px" android:layout_width="100px"
+		android:layout_marginLeft="220px" />
+
+
+
+
 </RelativeLayout>
