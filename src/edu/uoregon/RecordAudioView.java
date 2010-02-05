@@ -41,10 +41,19 @@ public class RecordAudioView extends Activity {
 	// DB
 	private IGeoDB con;
 
-	private static String convertAudioToFile(String fileName, byte[] audio) {
+	private String convertAudioToFile(String fileName, byte[] audio) {
 
+		//see if our directory exists:
+		final File audioD = new File(audioDir); 
+		if(!audioD.exists()){
+			if(!audioD.mkdirs()){
+				Log.d(TAG, "can't make directory: " + audioD.getAbsolutePath() + " (exiting activity)");
+				finish();
+			}
+		}
+		
 		// first clean out the old files:
-		for (File f : new File(audioDir).listFiles()) {
+		for (File f : audioD.listFiles()) {
 			if (!f.delete()) {
 				// something went wrong...
 				final String log = "Something went wrong, we couldn't delete the file: "
@@ -113,12 +122,12 @@ public class RecordAudioView extends Activity {
 		setContentView(R.layout.recordaudioview);
 
 		final int geoId = (Integer) getIntent().getSerializableExtra("geoId");
-		Log.d(TAG, "geoId is: " + geoId);
+		//Log.d(TAG, "geoId is: " + geoId);
 
 		// TODO close connection at some point...
 		con = GeoDBConnector.open(this);
 		final List<byte[]> rec = con.getRecordings(geoId);
-		Log.d(TAG, "size of rec: " + rec.size());
+		//Log.d(TAG, "size of rec: " + rec.size());
 		// for now we'll just use one audio per location:
 		final String fileName = convertAudioToFile("" + geoId,
 		        rec.size() > 0 ? rec.get(0) : null);
@@ -164,11 +173,11 @@ public class RecordAudioView extends Activity {
 					recordButton.setText(startRecordingAudio);
 
 					// let's do a save:
-					Log.d(TAG, "geoId: "
-					        + geoId
-					        + " return from addRecording: "
-					        + con.addRecordingToGeoStamp(geoId,
-					                convertFileToAudio(fileName)));
+					if(con.addRecordingToGeoStamp(geoId, convertFileToAudio(fileName))){
+						Log.d(TAG, 
+								"Didn't save the audio as expected... geoId: "
+								+ geoId);
+					}
 					
 					// If saved successfully make this true to display a checkmark
 					// TODO: Need to check if saved in db
