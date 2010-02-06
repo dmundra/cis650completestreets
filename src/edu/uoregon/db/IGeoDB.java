@@ -16,8 +16,16 @@ public interface IGeoDB {
 	 * stored in the database within a certain
 	 * radius of the given latitude and longitude.
 	 * @return
+	 * @deprecated Because we do not want to overcomplicate things
 	 */
 	public abstract List<GeoStamp> getGeoStamps(double latitude, double longitude, double radiusMeters);
+	
+	/**
+	 * Returns the GeoStamp that matches the
+	 * specified latitude and longitude.
+	 * @return A GeoStamp if it exists, null otherwise.
+	 */
+	public abstract GeoStamp getGeoStamp(double latitude, double longitude);
 	
 	/**
 	 * Adds a geostamp to the database.
@@ -79,11 +87,36 @@ public interface IGeoDB {
 	 * 		The list of recordings that match the given geoStampID
 	 */
 	public abstract List<byte[]> getRecordings(int geoStampID);
+
+	/**
+	 * Returns a list of pictures from the db that match the given GeoStamp ID
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we will use to match against recording
+	 * @return
+	 * 		The list of pictures for the given geoStamp
+	 * @deprecated Use getPictureFilePaths instead and extract the pictures from that.
+	 */
+	public abstract List<byte[]> getPictures(int geoStampID);
+	
+	/**
+	 * Returns a list of picture file paths from the db that match the given GeoStamp ID
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we will use to match against recording
+	 * @return
+	 * 		The list of picture file paths for the given geoStamp
+	 */
+	public abstract List<String> getPictureFilePaths(int geoStampID);
 	
 	/**
 	 * Closes the database
 	 */
 	public abstract void close();
+
+	/**
+	 * Recreates all the tables in the database. This can be useful
+	 * if there is a corruption in the database.
+	 */
+	public abstract void recreateTables(); 
 	
 	/**
 	 * Deletes all geostamps from the databse.

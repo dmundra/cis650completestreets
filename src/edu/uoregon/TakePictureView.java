@@ -101,19 +101,14 @@ public class TakePictureView extends Activity {
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
 			if (geoStampID != -1) {
-				boolean saved = db.addPictureToGeoStamp(geoStampID, data);
-
-				// If saved successfully make this true to display a checkmark
-				if (saved)
-					edu.uoregon.RecordTabView.pictureCheck
-							.setVisibility(View.VISIBLE);
+				db.addPictureToGeoStamp(geoStampID, data);
 			}
+			finish();
 		}
 
 		@Override
 		public void onClick(View v) {
 			mCamera.takePicture(null, null, this);
-			finish();
 		}
 
 	}

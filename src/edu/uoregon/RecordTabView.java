@@ -3,6 +3,8 @@ package edu.uoregon;
 import java.util.List;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,14 +28,18 @@ import edu.uoregon.db.IGeoDB;
  * 
  * @author Daniel Mundra
  * 
+ * David -- 2/6/2010 -- Added picture functionality.
+ * 						Moved some code from onCreate to onStart.
  */
 public class RecordTabView extends MapActivity {
 
 	private IGeoDB db;
 	private GeoStamp geoStamp;
 	private boolean prevSaved = false;
-	public static ImageView recordCheck;
-	public static ImageView pictureCheck;
+	private ImageView recordCheck;
+	private ImageView pictureCheck;
+	private ImageView pictureThumb;
+	private MapView mapThumbView;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -44,58 +50,18 @@ public class RecordTabView extends MapActivity {
 		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
 		final Button recordButton = (Button) findViewById(R.id.recordButton);
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
-		final MapView mapThumbView = (MapView) findViewById(R.id.mapThumbView);
+		mapThumbView = (MapView) findViewById(R.id.mapThumbView);
 
 		// Checkmarks are displayed when user saves audio and picture
 		recordCheck = (ImageView) findViewById(R.id.recordCheck);
 		pictureCheck = (ImageView) findViewById(R.id.pictureCheck);
+		pictureThumb = (ImageView) findViewById(R.id.thumbImage);
 
 		// Create geo stamp with current location
 		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
 		Log.d("RecordTabViewLog", "Geostamp loaded: " + geoStamp);
 
 		// Sets up a connection to the database.
-		db = GeoDBConnector.open(this);
-
-		// Get the list of geo stamps
-		List<GeoStamp> stamps = db.getGeoStamps();
-
-		// Checks if geo stamp has already been saved in the db.
-		// If it has then we will get the same one back, else
-		// we add it to the db.
-		if (stamps.contains(geoStamp)) {
-			geoStamp = stamps.get(stamps.indexOf(geoStamp));
-			Log.d("RecordTabViewLog", "Geostamp already in database, id: "
-					+ geoStamp.getDatabaseID());
-
-			// If the geo stamp was already saved we will use this flag
-			// in the other code to update the stamp
-			prevSaved = true;
-
-			// Check if record was saved before, if yes then put checkmark
-			int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();
-			Log.d("RecordTabViewLog", "Geostamp Recordings Saved: "
-					+ recordSaved);
-			if (recordSaved > 0)
-				recordCheck.setVisibility(View.VISIBLE);
-
-			// TODO: Check if picture was saved before, if yes then put
-			// checkmark and also put thumbnail of image
-			boolean pictureSaved = true;
-			Log
-					.d("RecordTabViewLog", "Geostamp Picture Saved: "
-							+ pictureSaved);
-			if (pictureSaved)
-				pictureCheck.setVisibility(View.VISIBLE);
-
-		} else {
-			db.addGeoStamp(geoStamp);
-			Log.d("RecordTabViewLog", "Geostamp added to database, id: "
-					+ geoStamp.getDatabaseID());
-		}
-
-		// Load thumbnail map
-		loadMapThumb(mapThumbView);
 
 		recordButton.setOnClickListener(new OnClickListener() {
 
@@ -136,6 +102,63 @@ public class RecordTabView extends MapActivity {
 				tabHost.setCurrentTab(0);
 			}
 		});
+	}
+	
+	/**
+	 * onResume is called every time an activity resumes focus.
+	 * Therefore, we do not need static views.
+	 * Static variables are bad :-)
+	 */
+	protected void onResume() {
+		super.onResume();
+		Log.d("RecordTabViewLog", "Resumed the activity");
+		
+		db = GeoDBConnector.open(this);
+		
+		// Check of the stamp already exists.
+//		GeoStamp stamp = db.getGeoStamp(geoStamp.getLatitude(),geoStamp.getLongitude());
+		List<GeoStamp> stamps = db.getGeoStamps();
+
+		// If it exists, we will get the same one back, else
+		// we add it to the db.
+		if (stamps.contains(geoStamp)) {
+			geoStamp.setDatabaseID(stamps.get(stamps.indexOf(geoStamp)).getDatabaseID());
+			Log.d("RecordTabViewLog", "Geostamp already in database, id: "
+					+ geoStamp.getDatabaseID());
+			
+			// If the geo stamp was already saved we will use this flag
+			// in the other code to update the stamp
+			prevSaved = true;
+		}
+		else {
+			db.addGeoStamp(geoStamp);
+			Log.d("RecordTabViewLog", "Geostamp added to database, id: "
+					+ geoStamp.getDatabaseID());
+		}
+
+		// Check if record was saved before, if yes then put check mark
+		int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();
+		Log.d("RecordTabViewLog", "Geostamp Recordings Saved: "
+				+ recordSaved);
+		if (recordSaved > 0)
+			recordCheck.setVisibility(View.VISIBLE);
+
+//		List<byte[]> pictures= db.getPictures(geoStamp.getDatabaseID());
+		List<String> pictures= db.getPictureFilePaths(geoStamp.getDatabaseID());
+		Log.d("RecordTabViewLog", "Geostamp Picture Saved: " + pictures.size());
+		if (pictures.size() > 0) {
+			pictureCheck.setVisibility(View.VISIBLE);
+			try {
+				Bitmap bm = BitmapFactory.decodeFile(pictures.get(0));
+//				Bitmap bm = BitmapFactory.decodeByteArray(pictures.get(0), 0, pictures.get(0).length);
+				pictureThumb.setImageBitmap(bm);
+			} catch (OutOfMemoryError e) {
+				Log.d("RecordTabViewLog", "I want more memory!");
+			}
+		}
+			
+		// Load thumbnail map
+		loadMapThumb(mapThumbView);
 	}
 
 	/**
@@ -187,10 +210,15 @@ public class RecordTabView extends MapActivity {
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-
-	@Override
-	protected void onDestroy() {
+	
+	protected void onPause() {
+		super.onPause();
 		db.close();
+		Log.d("RecordTabViewLog", "I was paused");
+	}
+	
+	protected void onDestroy() {
 		super.onDestroy();
+		Log.d("RecordTabViewLog", "I was destroyed!");
 	}
 }

@@ -16,9 +16,10 @@ import edu.uoregon.db.IGeoDB;
  * 
  * @author Daniel Mundra
  * 
+ * David -- 2/6/2010 -- Added recreate tables button.
+ * 
  */
 public class HelpTabView extends Activity {
-	private IGeoDB db;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -27,6 +28,7 @@ public class HelpTabView extends Activity {
 		setContentView(R.layout.helptabview);
 
 		Button clearGeoStamps = (Button) findViewById(R.id.clearAllButton);
+		Button recreateTables = (Button) findViewById(R.id.recreateAllButton);
 		TextView helpText = (TextView) findViewById(R.id.helpText);
 
 		// Load help/guidelines text
@@ -59,12 +61,28 @@ public class HelpTabView extends Activity {
 		clearGeoStamps.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				db = GeoDBConnector.open(getApplicationContext());
+				IGeoDB db = GeoDBConnector.open(getApplicationContext());
 
 				db.deleteAllGeoStamps();
 				Log.d("HelpTabView", "Deleted all geo stamps!");
 
 				Toast.makeText(getApplicationContext(), "Geo stampes cleared!",
+						Toast.LENGTH_LONG).show();
+
+				db.close();
+			}
+		});
+		
+		recreateTables.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				IGeoDB db = GeoDBConnector.open(getApplicationContext());
+
+				db.recreateTables();
+				Log.d("HelpTabView", "Recreated all the tables!");
+
+				Toast.makeText(getApplicationContext(), "Tables recreated!",
 						Toast.LENGTH_LONG).show();
 
 				db.close();

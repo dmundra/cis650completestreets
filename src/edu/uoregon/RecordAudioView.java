@@ -36,7 +36,7 @@ public class RecordAudioView extends Activity {
 	// this is our working directory for audio:
 	private static final String audioDir = Environment
 	        .getExternalStorageDirectory()
-	        + "/CompleteStreets/";
+	        + "/CompleteStreets/audio/";
 
 	// DB
 	private IGeoDB con;
@@ -181,8 +181,10 @@ public class RecordAudioView extends Activity {
 					
 					// If saved successfully make this true to display a checkmark
 					// TODO: Need to check if saved in db
-					edu.uoregon.RecordTabView.recordCheck
-							.setVisibility(View.VISIBLE);
+					// David: Static views are evil. I have restructured the code in RecordTabView
+					// so this call should be unnecessary.
+//					edu.uoregon.RecordTabView.recordCheck
+//							.setVisibility(View.VISIBLE);
 
 					// now we want to be able to play the audio:
 					showAudio(fileName, stopStartB);
