@@ -10,10 +10,15 @@
 	<CheckBox android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/socketCheck"
 		android:text="Started Socket Service" android:layout_below="@+id/helpScrollView"
-		android:layout_marginLeft="10px" android:layout_marginTop="5px"></CheckBox>
-	<Button android:layout_below="@+id/socketCheck"
+		android:layout_marginLeft="10px" android:layout_marginTop="5px" />
+	<Button android:layout_below="@id/socketCheck"
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:id="@+id/clearAllButton" android:layout_marginLeft="10px"
-		android:text="Clear Geo Stamps" android:layout_marginTop="10px"></Button>
+		android:text="Clear Geo Stamps" android:layout_marginTop="10px" />
+	<Button android:layout_below="@id/socketCheck"
+		android:layout_toRightOf="@id/clearAllButton"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:id="@+id/recreateAllButton" android:layout_marginLeft="10px"
+		android:text="Recreate tables" android:layout_marginTop="10px" />
 
 </RelativeLayout>
