@@ -29,12 +29,13 @@ import edu.uoregon.db.IGeoDB;
  */
 public class MapTabView extends MapActivity {
 	/** Called when the activity is first created. */
-	public static LocationManager lm;
-	public static LocationListener ll;
+	private static LocationManager lm;
+	private static LocationListener ll;
 	private MapView mapView;
 	private MapController mapControl;
 	private IGeoDB db;
-	private static boolean locationEnabled = false;
+	// Used for logging
+	private static final String TAG = "MapTabViewLog";
 
 	// Represents current location that we will save
 	public static Location currentLocation;
@@ -44,6 +45,8 @@ public class MapTabView extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.maptabview);
+
+		Log.i(TAG, "Map view started.");
 
 		mapView = (MapView) findViewById(R.id.mapView);
 		// Show zoom in/out buttons
@@ -59,26 +62,20 @@ public class MapTabView extends MapActivity {
 		// current location geo point. Should do this only once when
 		// application starts and then the location manager should
 		// manage the location changes.
-		if (!locationEnabled) {
-			initLocationManager();
-			Log.d("MapTabViewLog", "Load location manager (only once)");
-			currentLocation = lm
-					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			Log.d("MapTabViewLog", "Load current location: " + currentLocation);
-			curLocPoint = new GeoPoint(
-					(int) (currentLocation.getLatitude() * 1E6),
-					(int) (currentLocation.getLongitude() * 1E6));
-			Log.d("MapTabViewLog", "Load current geo point: " + curLocPoint);
-
-			locationEnabled = true;
-		}
+		initLocationManager();
+		Log.i(TAG, "Load location manager");
+		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		Log.i(TAG, "Load current location: " + currentLocation);
+		curLocPoint = new GeoPoint((int) (currentLocation.getLatitude() * 1E6),
+				(int) (currentLocation.getLongitude() * 1E6));
+		Log.i(TAG, "Load current geo point: " + curLocPoint);
 
 		// Load map with all pins
 		loadMap();
 	}
 
 	public void loadMap() {
-		Log.d("MapTabViewLog", "Load Map");
+		Log.i(TAG, "Load Map");
 
 		// Sets up a connection to the database.
 		db = GeoDBConnector.open(this);
@@ -101,7 +98,7 @@ public class MapTabView extends MapActivity {
 		boolean currLocNotSaved = true;
 		while (pins.hasNext()) {
 			GeoStamp next = pins.next();
-			Log.d("MapTabViewLog", "Load saved geostamp: " + next);
+			Log.i(TAG, "Load saved geostamp: " + next);
 			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
 			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
 					"Saved Location", null);
@@ -136,6 +133,8 @@ public class MapTabView extends MapActivity {
 	 * Initialize the location manager
 	 */
 	private void initLocationManager() {
+		Log.i(TAG, "Initialize location manager");
+		
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		ll = new LocationListener() {
@@ -143,11 +142,11 @@ public class MapTabView extends MapActivity {
 			public void onLocationChanged(Location newLocation) {
 				currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-				Log.d("MapTabViewLog", "Location updated: " + currentLocation);
+				Log.i(TAG, "Location updated: " + currentLocation);
 				curLocPoint = new GeoPoint(
 						(int) (currentLocation.getLatitude() * 1E6),
 						(int) (currentLocation.getLongitude() * 1E6));
-				Log.d("MapTabViewLog", "Geopoint updated: " + curLocPoint);
+				Log.i(TAG, "Geopoint updated: " + curLocPoint);
 				loadMap();
 			}
 
@@ -161,13 +160,24 @@ public class MapTabView extends MapActivity {
 			}
 		};
 
-		// Current location interval time is set to zero so we should
-		// see constant updates if the location changes
+		// Current location is updated when user moves 10 meters.
+		// TODO: Test on phone
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, ll);
 	}
 
 	@Override
 	protected boolean isRouteDisplayed() {
 		return false;
+	}
+	
+	@Override
+	protected void onDestroy() {
+		Log.i(TAG, "Location listerner removed.");
+		Log.i(TAG, "Map view closed.");
+		
+		// On destroy we stop listening to updates
+		// TODO: Test on phone
+		lm.removeUpdates(ll);
+		super.onDestroy();
 	}
 }

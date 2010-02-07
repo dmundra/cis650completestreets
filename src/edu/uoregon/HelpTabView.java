@@ -1,13 +1,18 @@
 package edu.uoregon;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
 
@@ -16,10 +21,23 @@ import edu.uoregon.db.IGeoDB;
  * 
  * @author Daniel Mundra
  * 
- * David -- 2/6/2010 -- Added recreate tables button.
+ *         David -- 2/6/2010 -- Added recreate tables button.
  * 
  */
 public class HelpTabView extends Activity {
+
+	// Used for logging
+	private static final String TAG = "HelpTabViewLog";
+	private static final String PREFS_NAME = "HelpPrefsFile";
+
+	/**
+	 * This is used for toast messages
+	 * 
+	 * @return HelpTabView
+	 */
+	private HelpTabView getState() {
+		return this;
+	}
 
 	/** Called when the activity is first created. */
 	@Override
@@ -27,9 +45,17 @@ public class HelpTabView extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.helptabview);
 
+		Log.i(TAG, "Help view started.");
+
 		Button clearGeoStamps = (Button) findViewById(R.id.clearAllButton);
 		Button recreateTables = (Button) findViewById(R.id.recreateAllButton);
+		CheckBox socketService = (CheckBox) findViewById(R.id.socketCheck);
 		TextView helpText = (TextView) findViewById(R.id.helpText);
+
+		// Load preferences for whether service started or not
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		boolean checked = settings.getBoolean("serviceStart", false);
+		socketService.setChecked(checked);
 
 		// Load help/guidelines text
 		// TODO: Right now just placeholder text
@@ -61,10 +87,12 @@ public class HelpTabView extends Activity {
 		clearGeoStamps.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				Log.i(TAG, "Clear button clicked.");
+
 				IGeoDB db = GeoDBConnector.open(getApplicationContext());
 
 				db.deleteAllGeoStamps();
-				Log.d("HelpTabView", "Deleted all geo stamps!");
+				Log.i(TAG, "Deleted all geo stamps!");
 
 				Toast.makeText(getApplicationContext(), "Geo stampes cleared!",
 						Toast.LENGTH_LONG).show();
@@ -72,15 +100,17 @@ public class HelpTabView extends Activity {
 				db.close();
 			}
 		});
-		
+
 		recreateTables.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
+				Log.i(TAG, "Recreate button clicked.");
+
 				IGeoDB db = GeoDBConnector.open(getApplicationContext());
 
 				db.recreateTables();
-				Log.d("HelpTabView", "Recreated all the tables!");
+				Log.i(TAG, "Recreated all the tables!");
 
 				Toast.makeText(getApplicationContext(), "Tables recreated!",
 						Toast.LENGTH_LONG).show();
@@ -88,5 +118,52 @@ public class HelpTabView extends Activity {
 				db.close();
 			}
 		});
+
+		// Checkbox to start and stop the service
+		socketService.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView,
+					boolean isChecked) {
+				Log.i(TAG, "Socket checkbox selected.");
+				
+				Intent locationSocket = new Intent();
+				locationSocket.setClassName(getState(),
+						"edu.uoregon.LocationSocket");
+				boolean serviceStart;
+
+				if (isChecked) {
+					Log.i(TAG, "Socket service started.");
+					
+					serviceStart = true;
+					startService(locationSocket);
+
+					Toast.makeText(getState().getBaseContext(),
+							"Service started!", Toast.LENGTH_LONG).show();
+				} else {
+					Log.i(TAG, "Socket service stopped.");
+					
+					serviceStart = false;
+					locationSocket.putExtra("socketService", false);
+					stopService(locationSocket);
+
+					Toast.makeText(getState().getBaseContext(),
+							"Service stopped!", Toast.LENGTH_LONG).show();
+				}
+
+				// Save user preferences of service starting
+				Log.i(TAG, "Socket state saved to file.");
+				
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+				SharedPreferences.Editor editor = settings.edit();
+				editor.putBoolean("serviceStart", serviceStart);
+				editor.commit();
+			}
+		});
+	}
+
+	@Override
+	protected void onDestroy() {
+		Log.i(TAG, "Help view closed.");
+		super.onDestroy();
 	}
 }

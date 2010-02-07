@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="edu.uoregon" android:versionCode="1" android:versionName="1.0">
-	
+
 	<application android:icon="@drawable/icon" android:label="@string/app_name"
-		android:theme="@android:style/Theme.NoTitleBar"
-		android:debuggable="true">
+		android:theme="@android:style/Theme.NoTitleBar" android:debuggable="true">
 		<uses-library android:name="com.google.android.maps" />
 		<activity android:name=".Main" android:label="@string/app_name">
 			<intent-filter>
@@ -33,9 +32,11 @@
 		</activity>
 		<activity android:name=".RecordAudioView"></activity>
 		<activity android:name=".TakePictureView">
-		 	<uses-feature android:name="android.hardware.camera" />
- 			<uses-feature android:name="android.hardware.camera.autofocus" />
+			<uses-feature android:name="android.hardware.camera" />
+			<uses-feature android:name="android.hardware.camera.autofocus" />
 		</activity>
+		<service android:name=".LocationSocket">
+		</service>
 
 	</application>
 	<uses-sdk android:minSdkVersion="4" />

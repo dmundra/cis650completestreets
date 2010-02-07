@@ -28,7 +28,7 @@ import edu.uoregon.db.IGeoDB;
 public class RecordAudioView extends Activity {
 
 	// just for logging:
-	private static final String TAG = "RecordTabView";
+	private static final String TAG = "RecordAudioViewLog";
 	// this is what we'll use to do our current recording:
 	private final MediaRecorder recorder = new MediaRecorder();
 	// this is what we'll use to play audio:
