@@ -65,24 +65,22 @@ public class MapTabView extends MapActivity {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		socketData = settings.getBoolean("serviceStart", false);
 
-		// if (!socketData) {
-		// Initialize location manager and get current location and
-		// current location geo point. Should do this only once when
-		// application starts and then the location manager should
-		// manage the location changes.
-		initLocationManager();
-		Log.i(TAG, "Load location manager");
-		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		curLocPoint = new GeoPoint((int) (currentLocation.getLatitude() * 1E6),
-				(int) (currentLocation.getLongitude() * 1E6));
-		// } else {
-		// Log.i(TAG, "Load location from server socket");
-		// currentLocation = edu.uoregon.server.LocationServer.mapData;
-		// curLocPoint = new GeoPoint(
-		// (int) (currentLocation.getLatitude() * 1E6),
-		// (int) (currentLocation.getLongitude() * 1E6));
-		//
-		// }
+		if (!socketData) {
+			// Initialize location manager and get current location and
+			// current location geo point. Should do this only once when
+			// application starts and then the location manager should
+			// manage the location changes.
+			initLocationManager();
+			Log.i(TAG, "Load location manager");
+			currentLocation = lm
+					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			curLocPoint = new GeoPoint(
+					(int) (currentLocation.getLatitude() * 1E6),
+					(int) (currentLocation.getLongitude() * 1E6));
+		} else {
+			Log.i(TAG, "Load geopoint from server socket");
+			curLocPoint = edu.uoregon.server.LocationServer.mapData;
+		}
 
 		Log.i(TAG, "Load current location: " + currentLocation);
 		Log.i(TAG, "Load current geo point: " + curLocPoint);
@@ -122,9 +120,11 @@ public class MapTabView extends MapActivity {
 			nextOverlay.addItem(nextOverlayItem);
 			listOfOverlays.add(nextOverlay);
 
-			GeoStamp currLoc = new GeoStamp(currentLocation);
-			if (next.equals(currLoc)) {
-				currLocNotSaved = false;
+			if (!socketData) {
+				GeoStamp currLoc = new GeoStamp(currentLocation);
+				if (next.equals(currLoc)) {
+					currLocNotSaved = false;
+				}
 			}
 		}
 
@@ -194,7 +194,7 @@ public class MapTabView extends MapActivity {
 
 		// On destroy we stop listening to updates
 		// TODO: Test on phone
-		// if (!socketData)
+		if (!socketData)
 			lm.removeUpdates(ll);
 		super.onDestroy();
 	}

@@ -6,8 +6,9 @@ import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import android.location.Location;
 import android.util.Log;
+
+import com.google.android.maps.GeoPoint;
 
 /**
  * Server that gets location data
@@ -21,7 +22,8 @@ public class LocationServer implements Runnable {
 	// Used for logging
 	private static final String TAG = "LocationServerLog";
 	
-	public static Location mapData = null;
+	// TODO: Just for testing
+	public static GeoPoint mapData = new GeoPoint((int) (37.422006 * 1E6),(int) (-122.084095 * 1E6));;
 	
 	public LocationServer(ServerSocket serv) {
 		this.serverSocket = serv;
@@ -45,10 +47,7 @@ public class LocationServer implements Runnable {
 					double lat = Double.parseDouble(data[0]);
 					double lon = Double.parseDouble(data[1]);				
 										
-					mapData = new Location(edu.uoregon.MapTabView.currentLocation);
-					
-					mapData.setLatitude(lat);
-					mapData.setLongitude(lon);
+					mapData = new GeoPoint((int) (lat * 1E6),(int) (lon * 1E6));
 					
 					Log.d(TAG, "Data as location: " + mapData.toString());
 				}
