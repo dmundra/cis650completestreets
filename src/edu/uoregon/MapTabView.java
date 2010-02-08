@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
@@ -31,11 +32,13 @@ public class MapTabView extends MapActivity {
 	/** Called when the activity is first created. */
 	private static LocationManager lm;
 	private static LocationListener ll;
+	private static boolean socketData;
 	private MapView mapView;
 	private MapController mapControl;
 	private IGeoDB db;
 	// Used for logging
 	private static final String TAG = "MapTabViewLog";
+	private static final String PREFS_NAME = "HelpPrefsFile";
 
 	// Represents current location that we will save
 	public static Location currentLocation;
@@ -58,6 +61,11 @@ public class MapTabView extends MapActivity {
 		mapControl = mapView.getController();
 		mapControl.setZoom(18);
 
+		// Load preferences for whether service started or not
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		socketData = settings.getBoolean("serviceStart", false);
+
+		// if (!socketData) {
 		// Initialize location manager and get current location and
 		// current location geo point. Should do this only once when
 		// application starts and then the location manager should
@@ -65,9 +73,18 @@ public class MapTabView extends MapActivity {
 		initLocationManager();
 		Log.i(TAG, "Load location manager");
 		currentLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		Log.i(TAG, "Load current location: " + currentLocation);
 		curLocPoint = new GeoPoint((int) (currentLocation.getLatitude() * 1E6),
 				(int) (currentLocation.getLongitude() * 1E6));
+		// } else {
+		// Log.i(TAG, "Load location from server socket");
+		// currentLocation = edu.uoregon.server.LocationServer.mapData;
+		// curLocPoint = new GeoPoint(
+		// (int) (currentLocation.getLatitude() * 1E6),
+		// (int) (currentLocation.getLongitude() * 1E6));
+		//
+		// }
+
+		Log.i(TAG, "Load current location: " + currentLocation);
 		Log.i(TAG, "Load current geo point: " + curLocPoint);
 
 		// Load map with all pins
@@ -134,7 +151,7 @@ public class MapTabView extends MapActivity {
 	 */
 	private void initLocationManager() {
 		Log.i(TAG, "Initialize location manager");
-		
+
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 		ll = new LocationListener() {
@@ -169,15 +186,16 @@ public class MapTabView extends MapActivity {
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		Log.i(TAG, "Location listerner removed.");
 		Log.i(TAG, "Map view closed.");
-		
+
 		// On destroy we stop listening to updates
 		// TODO: Test on phone
-		lm.removeUpdates(ll);
+		// if (!socketData)
+			lm.removeUpdates(ll);
 		super.onDestroy();
 	}
 }

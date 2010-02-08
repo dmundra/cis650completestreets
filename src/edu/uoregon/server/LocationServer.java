@@ -3,10 +3,10 @@ package edu.uoregon.server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import android.location.Location;
 import android.util.Log;
 
 /**
@@ -18,45 +18,47 @@ public class LocationServer implements Runnable {
 
 	private ServerSocket serverSocket;
 	private Socket clientSocket;
-	private final int PORTNO = 4444;
 	// Used for logging
 	private static final String TAG = "LocationServerLog";
+	
+	public static Location mapData = null;
+	
+	public LocationServer(ServerSocket serv) {
+		this.serverSocket = serv;
+	}
 
 	@Override
 	public void run() {
-		try {
-			try {
-				Log.d(TAG, "Create server socket.");
-				serverSocket = new ServerSocket(PORTNO, 0, InetAddress
-						.getLocalHost());
-				Log.d(TAG, "IP: " + serverSocket.getInetAddress());
-			} catch (IOException e) {
-				System.err.println("Could not listen on port: 4444.");
-				System.exit(1);
-			}
-
-			try {
+		try {			
+			while (true) {
 				Log.d(TAG, "Accepting data.");
 				clientSocket = serverSocket.accept();
-			} catch (IOException e) {
-				Log.e(TAG, "Accept failed.");
-			}
 
-			Log.e(TAG, "Get data from client.");
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					clientSocket.getInputStream()));
-			String inputLine = "";
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						clientSocket.getInputStream()));
+				String inputLine = "";
 
-			while ((inputLine = in.readLine()) != null) {
-				Log.d(TAG, "Got data: " + inputLine);
-			}
+				while ((inputLine = in.readLine()) != null) {
+					Log.d(TAG, "Got data: " + inputLine);
+					
+					String[] data = inputLine.split(",");
+					double lat = Double.parseDouble(data[0]);
+					double lon = Double.parseDouble(data[1]);				
+										
+					mapData = new Location(edu.uoregon.MapTabView.currentLocation);
+					
+					mapData.setLatitude(lat);
+					mapData.setLongitude(lon);
+					
+					Log.d(TAG, "Data as location: " + mapData.toString());
+				}
 
-			in.close();
-			clientSocket.close();
-			serverSocket.close();
+				in.close();
+			}			
 
 		} catch (IOException ioe) {
-			Log.e(TAG, "Location server IO exception.");
+			Log.e(TAG, "Location server IO exception: " + ioe.getMessage());
+			mapData = null;
 		}
 	}
 }

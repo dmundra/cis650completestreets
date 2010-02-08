@@ -1,5 +1,8 @@
 package edu.uoregon;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -13,26 +16,39 @@ import edu.uoregon.server.LocationServer;
  */
 public class LocationSocket extends Service {
 
+	private ServerSocket serverSocket;
+	private final int PORTNO = 4444;
+
 	// Used for logging
 	private static final String TAG = "LocationSocketLog";
 
 	@Override
 	public void onCreate() {
-		Log.i(TAG, "Starting Location socket service.");
-
-		new Thread(new LocationServer()).start();
 		try {
-			Thread.sleep(500);
+			Log.i(TAG, "Starting Location socket service.");
 
-		} catch (InterruptedException ie) {
-			Log.e(TAG, "Interrupted: " + ie.getMessage());
+			serverSocket = new ServerSocket(PORTNO);
+
+			new Thread(new LocationServer(serverSocket)).start();
+			try {
+				Thread.sleep(500);
+
+			} catch (InterruptedException ie) {
+				Log.e(TAG, "Interrupted: " + ie.getMessage());
+			}
+		} catch (IOException e) {
+			Log.e(TAG, "IO Exception: " + e.getMessage());
 		}
-
 	}
 
 	@Override
 	public void onDestroy() {
-		Log.i(TAG, "Stopping Location socket service.");
+		try {
+			Log.i(TAG, "Stopping Location socket service.");
+			serverSocket.close();
+		} catch (IOException e) {
+			Log.e(TAG, "IO Exception: " + e.getMessage());
+		}
 		super.onDestroy();
 	}
 
