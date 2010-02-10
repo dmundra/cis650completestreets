@@ -39,6 +39,7 @@ public class RecordTabView extends MapActivity {
 	private ImageView recordCheck;
 	private ImageView pictureCheck;
 	private ImageView pictureThumb;
+	private Button cancelButton;
 	private MapView mapThumbView;
 	// Used for logging
 	private static final String TAG = "RecordTabViewLog";
@@ -51,7 +52,7 @@ public class RecordTabView extends MapActivity {
 
 		Log.i(TAG, "Record view started.");
 
-		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
+		cancelButton = (Button) findViewById(R.id.cancelButton);
 		final Button recordButton = (Button) findViewById(R.id.recordButton);
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
 		mapThumbView = (MapView) findViewById(R.id.mapThumbView);
@@ -64,7 +65,7 @@ public class RecordTabView extends MapActivity {
 		// Create geo stamp with current location
 		geoStamp = edu.uoregon.MapTabView.curGeoStamp;
 		Log.i(TAG, "Geostamp loaded: " + geoStamp);
-
+		
 		recordButton.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -144,7 +145,9 @@ public class RecordTabView extends MapActivity {
 			Log.i(TAG, "Geostamp added to database, id: "
 					+ geoStamp.getDatabaseID());
 		}
-
+		
+		if(prevSaved) cancelButton.setText("Delete");
+		
 		// Check if record was saved before, if yes then put check mark
 		int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();
 		Log.i(TAG, "Geostamp Recordings Saved: " + recordSaved);

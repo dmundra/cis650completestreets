@@ -1,5 +1,10 @@
 package edu.uoregon;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,21 +34,26 @@ import edu.uoregon.db.IGeoDB;
  * 
  */
 public class MapTabView extends MapActivity {
-	/** Called when the activity is first created. */
+
 	private static LocationManager lm;
 	private static LocationListener ll;
 	private static boolean socketData;
 	private MapView mapView;
 	private MapController mapControl;
 	private IGeoDB db;
+
 	// Used for logging
 	private static final String TAG = "MapTabViewLog";
 	private static final String PREFS_NAME = "HelpPrefsFile";
 
 	// Represents current location that we will save
 	public static GeoStamp curGeoStamp;
-	private static Location currentLocation;
 	private static GeoPoint curLocPoint;
+
+	// Used for socket server
+	private static boolean defaultStamp = true;
+	private ServerSocket serverSocket;
+	private final int PORTNO = 4444;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -73,25 +83,36 @@ public class MapTabView extends MapActivity {
 			// manage the location changes.
 			initLocationManager();
 			Log.i(TAG, "Load location manager");
-			currentLocation = lm
+
+			Location currentLocation = lm
 					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+			Log.i(TAG, "Load current location: " + currentLocation);
 			curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
 					currentLocation.getLongitude());
 			curLocPoint = curGeoStamp.getGeoPoint();
+			Log.i(TAG, "Load current geo point: " + curLocPoint);
 		} else {
-			Log.i(TAG, "Load geopoint from server socket");
-			curGeoStamp = edu.uoregon.server.LocationServer.mapData;
-			curLocPoint = curGeoStamp.getGeoPoint();
+			try {
+				// Loads default geo stamp
+				if (defaultStamp) {
+					curGeoStamp = new GeoStamp(37.422006, -122.084095);
+					curLocPoint = curGeoStamp.getGeoPoint();
+					defaultStamp = false;
+				}
+				
+				// Creates a server socket and starts the socket listener
+				serverSocket = new ServerSocket(PORTNO);
+				new Thread(new SocketLocationListener(serverSocket)).start();
+			} catch (IOException e) {
+				Log.e(TAG, e.getMessage());
+			}
 		}
 
-		Log.i(TAG, "Load current location: " + currentLocation);
-		Log.i(TAG, "Load current geo point: " + curLocPoint);
-
 		// Load map with all pins
-		loadMap();
+		loadMap(false);
 	}
 
-	public void loadMap() {
+	public void loadMap(boolean nonUI) {
 		Log.i(TAG, "Load Map");
 
 		// Sets up a connection to the database.
@@ -122,12 +143,10 @@ public class MapTabView extends MapActivity {
 			nextOverlay.addItem(nextOverlayItem);
 			listOfOverlays.add(nextOverlay);
 
-			if (!socketData) {
-				GeoStamp currLoc = new GeoStamp(currentLocation.getLatitude(),
-						currentLocation.getLongitude());
-				if (next.equals(currLoc)) {
-					currLocNotSaved = false;
-				}
+			GeoStamp currLoc = new GeoStamp(curGeoStamp.getLatitude(),
+					curGeoStamp.getLongitude());
+			if (next.equals(currLoc)) {
+				currLocNotSaved = false;
 			}
 		}
 
@@ -142,8 +161,14 @@ public class MapTabView extends MapActivity {
 
 		// Animate to current location
 		mapControl.animateTo(curLocPoint);
+		Log.d(TAG, "Animate to current geo point: " + curLocPoint);
 
-		mapView.invalidate();
+		if (!nonUI) {
+			mapView.invalidate();
+		} else {
+			// This is when the socket listener calls a map update
+			mapView.postInvalidate();
+		}
 
 		// Close db
 		db.close();
@@ -160,14 +185,14 @@ public class MapTabView extends MapActivity {
 		ll = new LocationListener() {
 
 			public void onLocationChanged(Location newLocation) {
-				currentLocation = lm
+				Location currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				Log.i(TAG, "Location updated: " + currentLocation);
 				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
 						currentLocation.getLongitude());
 				curLocPoint = curGeoStamp.getGeoPoint();
 				Log.i(TAG, "Geopoint updated: " + curLocPoint);
-				loadMap();
+				loadMap(false);
 			}
 
 			public void onProviderDisabled(String arg0) {
@@ -181,7 +206,6 @@ public class MapTabView extends MapActivity {
 		};
 
 		// Current location is updated when user moves 10 meters.
-		// TODO: Test on phone
 		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, ll);
 	}
 
@@ -192,13 +216,75 @@ public class MapTabView extends MapActivity {
 
 	@Override
 	protected void onDestroy() {
-		Log.i(TAG, "Location listerner removed.");
 		Log.i(TAG, "Map view closed.");
 
 		// On destroy we stop listening to updates
-		// TODO: Test on phone
-		if (!socketData)
+		if (!socketData) {
+			Log.i(TAG, "Location listerner removed.");
 			lm.removeUpdates(ll);
+		} else {
+			// We close the socket
+			try {
+				Log.i(TAG, "Close socket server.");
+				serverSocket.close();
+			} catch (IOException e) {
+				Log.e(TAG, e.getMessage());
+			}
+		}
+
 		super.onDestroy();
+	}
+
+	/**
+	 * Location listener that gets location data from a socket connection.
+	 * 
+	 * @author Daniel Mundra
+	 * 
+	 */
+	private class SocketLocationListener implements Runnable {
+
+		private ServerSocket serverSocket;
+		private Socket clientSocket;
+		private final String TAG = "ServerListenerLog";
+		private final int SIZE = 30;
+
+		private SocketLocationListener(ServerSocket serv) {
+			this.serverSocket = serv;
+		}
+
+		@Override
+		public void run() {
+			Log.i(TAG, "Load geopoint from server socket");
+			try {
+				while (true) {
+					Log.i(TAG, "Accepting data from socket.");
+					clientSocket = serverSocket.accept();
+
+					BufferedReader in = new BufferedReader(
+							new InputStreamReader(clientSocket.getInputStream()),
+							SIZE);
+					String inputLine = "";
+
+					while ((inputLine = in.readLine()) != null) {
+						Log.i(TAG, "Got data from socket: " + inputLine);
+
+						// We are assuming we get data as "lat,lon"
+						String[] data = inputLine.split(",");
+						double lat = Double.parseDouble(data[0]);
+						double lon = Double.parseDouble(data[1]);
+
+						curGeoStamp = new GeoStamp(lat, lon);
+						curLocPoint = curGeoStamp.getGeoPoint();
+
+						Log.i(TAG, "Load current geo point: " + curLocPoint);
+						loadMap(true);
+					}
+
+					in.close();
+				}
+			} catch (IOException e) {
+				Log.e(TAG, e.getMessage());
+			}
+		}
 	}
 }

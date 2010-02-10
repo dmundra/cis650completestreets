@@ -1,7 +1,6 @@
 package edu.uoregon;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -124,30 +123,21 @@ public class HelpTabView extends Activity {
 			@Override
 			public void onCheckedChanged(CompoundButton buttonView,
 					boolean isChecked) {
-				Log.i(TAG, "Socket checkbox selected.");
-				
-				Intent locationSocket = new Intent();
-				locationSocket.setClassName(getState(),
-						"edu.uoregon.LocationSocket");
+				Log.i(TAG, "Socket checkbox selected.");				
 				boolean serviceStart;
 
 				if (isChecked) {
-					Log.i(TAG, "Socket service started.");
-					
+					Log.i(TAG, "Socket service on.");					
 					serviceStart = true;
-					startService(locationSocket);
 
 					Toast.makeText(getState().getBaseContext(),
-							"Service started!", Toast.LENGTH_LONG).show();
+							"Service on!", Toast.LENGTH_LONG).show();
 				} else {
-					Log.i(TAG, "Socket service stopped.");
-					
+					Log.i(TAG, "Socket service off.");					
 					serviceStart = false;
-					locationSocket.putExtra("socketService", false);
-					stopService(locationSocket);
 
 					Toast.makeText(getState().getBaseContext(),
-							"Service stopped!", Toast.LENGTH_LONG).show();
+							"Service off!", Toast.LENGTH_LONG).show();
 				}
 
 				// Save user preferences of service starting

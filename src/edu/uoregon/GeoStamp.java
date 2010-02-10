@@ -12,12 +12,9 @@ import com.google.android.maps.GeoPoint;
  */
 public class GeoStamp {
 
-	// Variables used by GeoStamp
 	private int databaseID = newGeoStamp;
-	private double latitude;
-	private double longitude;
-
-	// Need variables for pictures and voice memos
+	private final double latitude;
+	private final double longitude;
 
 	/**
 	 * Constructor for GeoStamp If the geostamp is created without a database
@@ -99,9 +96,10 @@ public class GeoStamp {
 	@Override
 	public boolean equals(Object o) {
 		GeoStamp g = (GeoStamp) o;
-		boolean isLatEQ = this.latitude == g.getLatitude();
-		boolean isLonEQ = this.longitude == g.getLongitude();
-		return isLatEQ || isLonEQ;
+		double EPSILON = 0.00001;		
+		boolean isLatEQ = Math.abs(this.latitude - g.getLatitude()) < EPSILON;
+		boolean isLonEQ = Math.abs(this.longitude - g.getLongitude()) < EPSILON;		
+		return isLatEQ && isLonEQ;
 	}
 
 	public static final int newGeoStamp = -1;
