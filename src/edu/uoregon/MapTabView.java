@@ -41,7 +41,8 @@ public class MapTabView extends MapActivity {
 	private static final String PREFS_NAME = "HelpPrefsFile";
 
 	// Represents current location that we will save
-	public static Location currentLocation;
+	public static GeoStamp curGeoStamp;
+	private static Location currentLocation;
 	private static GeoPoint curLocPoint;
 
 	@Override
@@ -74,12 +75,13 @@ public class MapTabView extends MapActivity {
 			Log.i(TAG, "Load location manager");
 			currentLocation = lm
 					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			curLocPoint = new GeoPoint(
-					(int) (currentLocation.getLatitude() * 1E6),
-					(int) (currentLocation.getLongitude() * 1E6));
+			curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
+					currentLocation.getLongitude());
+			curLocPoint = curGeoStamp.getGeoPoint();
 		} else {
 			Log.i(TAG, "Load geopoint from server socket");
-			curLocPoint = edu.uoregon.server.LocationServer.mapData;
+			curGeoStamp = edu.uoregon.server.LocationServer.mapData;
+			curLocPoint = curGeoStamp.getGeoPoint();
 		}
 
 		Log.i(TAG, "Load current location: " + currentLocation);
@@ -121,7 +123,8 @@ public class MapTabView extends MapActivity {
 			listOfOverlays.add(nextOverlay);
 
 			if (!socketData) {
-				GeoStamp currLoc = new GeoStamp(currentLocation);
+				GeoStamp currLoc = new GeoStamp(currentLocation.getLatitude(),
+						currentLocation.getLongitude());
 				if (next.equals(currLoc)) {
 					currLocNotSaved = false;
 				}
@@ -160,9 +163,9 @@ public class MapTabView extends MapActivity {
 				currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				Log.i(TAG, "Location updated: " + currentLocation);
-				curLocPoint = new GeoPoint(
-						(int) (currentLocation.getLatitude() * 1E6),
-						(int) (currentLocation.getLongitude() * 1E6));
+				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
+						currentLocation.getLongitude());
+				curLocPoint = curGeoStamp.getGeoPoint();
 				Log.i(TAG, "Geopoint updated: " + curLocPoint);
 				loadMap();
 			}

@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -17,11 +16,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteDatabase.CursorFactory;
-import android.location.Location;
 import android.os.Environment;
 import android.util.Log;
-
 import edu.uoregon.GeoStamp;
 
 /**
@@ -94,10 +90,7 @@ public class GeoDBConnector implements IGeoDB {
 				int id = cur.getInt(cur.getColumnIndex(KEY_ROWID));
 				double lat = cur.getDouble(cur.getColumnIndex(GEOSTAMP_KEY_LATITUDE));
 				double lon = cur.getDouble(cur.getColumnIndex(GEOSTAMP_KEY_LONGITUDE));
-				Location l = new Location("db");
-				l.setLatitude(lat);
-				l.setLongitude(lon);
-				list.add(new GeoStamp(l,id));
+				list.add(new GeoStamp(lat,lon,id));
 				cur.moveToNext();
 			}
 		}
@@ -127,10 +120,7 @@ public class GeoDBConnector implements IGeoDB {
 			double lat = cur.getDouble(cur.getColumnIndex(GEOSTAMP_KEY_LATITUDE));
 			double lon = cur.getDouble(cur.getColumnIndex(GEOSTAMP_KEY_LONGITUDE));
 			cur.close();
-			Location l = new Location("db");
-			l.setLatitude(lat);
-			l.setLongitude(lon);
-			return new GeoStamp(l, id);
+			return new GeoStamp(lat,lon, id);
 		}
 		return null;
 	}

@@ -28,8 +28,8 @@ import edu.uoregon.db.IGeoDB;
  * 
  * @author Daniel Mundra
  * 
- * David -- 2/6/2010 -- Added picture functionality.
- * 						Moved some code from onCreate to onStart.
+ *         David -- 2/6/2010 -- Added picture functionality. Moved some code
+ *         from onCreate to onStart.
  */
 public class RecordTabView extends MapActivity {
 
@@ -48,7 +48,7 @@ public class RecordTabView extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordtabview);
-		
+
 		Log.i(TAG, "Record view started.");
 
 		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
@@ -62,7 +62,7 @@ public class RecordTabView extends MapActivity {
 		pictureThumb = (ImageView) findViewById(R.id.thumbImage);
 
 		// Create geo stamp with current location
-		geoStamp = new GeoStamp(edu.uoregon.MapTabView.currentLocation);
+		geoStamp = edu.uoregon.MapTabView.curGeoStamp;
 		Log.i(TAG, "Geostamp loaded: " + geoStamp);
 
 		recordButton.setOnClickListener(new OnClickListener() {
@@ -70,7 +70,7 @@ public class RecordTabView extends MapActivity {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Record button clicked.");
-				
+
 				// take us to the record audio page:
 				Intent intent = new Intent(RecordTabView.this,
 						RecordAudioView.class);
@@ -87,7 +87,7 @@ public class RecordTabView extends MapActivity {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Capture button clicked.");
-				
+
 				Intent intent = new Intent(RecordTabView.this,
 						TakePictureView.class);
 				intent.putExtra("geoStampID", geoStamp.getDatabaseID());
@@ -102,43 +102,44 @@ public class RecordTabView extends MapActivity {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Cancel button clicked.");
-				
+
 				db.deleteGeoStamp(geoStamp);
-				Log.i(TAG, "Deleted geo stamp, id: "
-						+ geoStamp.getDatabaseID());
+				Log
+						.i(TAG, "Deleted geo stamp, id: "
+								+ geoStamp.getDatabaseID());
 				TabHost tabHost = edu.uoregon.Main.mTabHost;
 				tabHost.setCurrentTab(0);
 			}
 		});
 	}
-	
+
 	/**
-	 * onResume is called every time an activity resumes focus.
-	 * Therefore, we do not need static views.
-	 * Static variables are bad :-)
+	 * onResume is called every time an activity resumes focus. Therefore, we do
+	 * not need static views. Static variables are bad :-)
 	 */
 	protected void onResume() {
 		super.onResume();
 		Log.i(TAG, "Resumed the activity");
-		
+
 		db = GeoDBConnector.open(this);
-		
+
 		// Check of the stamp already exists.
-//		GeoStamp stamp = db.getGeoStamp(geoStamp.getLatitude(),geoStamp.getLongitude());
+		// GeoStamp stamp =
+		// db.getGeoStamp(geoStamp.getLatitude(),geoStamp.getLongitude());
 		List<GeoStamp> stamps = db.getGeoStamps();
 
 		// If it exists, we will get the same one back, else
 		// we add it to the db.
 		if (stamps.contains(geoStamp)) {
-			geoStamp.setDatabaseID(stamps.get(stamps.indexOf(geoStamp)).getDatabaseID());
+			geoStamp.setDatabaseID(stamps.get(stamps.indexOf(geoStamp))
+					.getDatabaseID());
 			Log.i(TAG, "Geostamp already in database, id: "
 					+ geoStamp.getDatabaseID());
-			
+
 			// If the geo stamp was already saved we will use this flag
 			// in the other code to update the stamp
 			prevSaved = true;
-		}
-		else {
+		} else {
 			db.addGeoStamp(geoStamp);
 			Log.i(TAG, "Geostamp added to database, id: "
 					+ geoStamp.getDatabaseID());
@@ -146,25 +147,26 @@ public class RecordTabView extends MapActivity {
 
 		// Check if record was saved before, if yes then put check mark
 		int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();
-		Log.i(TAG, "Geostamp Recordings Saved: "
-				+ recordSaved);
+		Log.i(TAG, "Geostamp Recordings Saved: " + recordSaved);
 		if (recordSaved > 0)
 			recordCheck.setVisibility(View.VISIBLE);
 
-//		List<byte[]> pictures= db.getPictures(geoStamp.getDatabaseID());
-		List<String> pictures= db.getPictureFilePaths(geoStamp.getDatabaseID());
+		// List<byte[]> pictures= db.getPictures(geoStamp.getDatabaseID());
+		List<String> pictures = db
+				.getPictureFilePaths(geoStamp.getDatabaseID());
 		Log.i(TAG, "Geostamp Picture Saved: " + pictures.size());
 		if (pictures.size() > 0) {
 			pictureCheck.setVisibility(View.VISIBLE);
 			try {
 				Bitmap bm = BitmapFactory.decodeFile(pictures.get(0));
-//				Bitmap bm = BitmapFactory.decodeByteArray(pictures.get(0), 0, pictures.get(0).length);
+				// Bitmap bm = BitmapFactory.decodeByteArray(pictures.get(0), 0,
+				// pictures.get(0).length);
 				pictureThumb.setImageBitmap(bm);
 			} catch (OutOfMemoryError e) {
 				Log.e(TAG, "I want more memory!");
 			}
 		}
-			
+
 		// Load thumbnail map
 		loadMapThumb(mapThumbView);
 	}
@@ -218,13 +220,13 @@ public class RecordTabView extends MapActivity {
 	protected boolean isRouteDisplayed() {
 		return false;
 	}
-	
+
 	protected void onPause() {
 		Log.i(TAG, "Record view paused.");
 		super.onPause();
 		db.close();
 	}
-	
+
 	protected void onDestroy() {
 		Log.i(TAG, "Record view closed.");
 		super.onDestroy();

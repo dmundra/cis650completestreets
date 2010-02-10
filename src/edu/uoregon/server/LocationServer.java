@@ -7,8 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import android.util.Log;
-
-import com.google.android.maps.GeoPoint;
+import edu.uoregon.GeoStamp;
 
 /**
  * Server that gets location data
@@ -23,7 +22,7 @@ public class LocationServer implements Runnable {
 	private static final String TAG = "LocationServerLog";
 	
 	// TODO: Just for testing
-	public static GeoPoint mapData = new GeoPoint((int) (37.422006 * 1E6),(int) (-122.084095 * 1E6));;
+	public static GeoStamp mapData = new GeoStamp(37.422006,-122.084095);
 	
 	public LocationServer(ServerSocket serv) {
 		this.serverSocket = serv;
@@ -47,7 +46,7 @@ public class LocationServer implements Runnable {
 					double lat = Double.parseDouble(data[0]);
 					double lon = Double.parseDouble(data[1]);				
 										
-					mapData = new GeoPoint((int) (lat * 1E6),(int) (lon * 1E6));
+					mapData = new GeoStamp(lat,lon);
 					
 					Log.d(TAG, "Data as location: " + mapData.toString());
 				}
