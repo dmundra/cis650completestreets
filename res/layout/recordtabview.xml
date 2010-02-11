@@ -14,13 +14,13 @@
 		android:layout_marginLeft="10px" android:layout_marginTop="110px"></Button>
 
 	<ImageView android:layout_toRightOf="@+id/pictureButton" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/pictureCheck" android:layout_alignTop="@+id/pictureButton" android:src="@drawable/check" android:layout_marginTop="4px" android:visibility="invisible" />
-	<ImageView android:id="@+id/thumbImage" android:src="@drawable/icon"
+	<TextView android:id="@+id/recordStats"
 		android:layout_height="150px" android:layout_width="150px"
 		android:layout_marginLeft="180px" android:layout_below="@+id/mapThumbView"
 		android:layout_marginTop="20px" />
 	<Button android:layout_width="wrap_content"
 		android:layout_toRightOf="@+id/saveButton" android:layout_height="wrap_content"
-		android:id="@+id/cancelButton" android:text="Cancel" android:width="75px"
+		android:id="@+id/cancelButton" android:text="Delete" android:width="75px"
 		android:layout_marginLeft="10px" android:layout_marginTop="180px"></Button>
 
 	<com.google.android.maps.MapView
