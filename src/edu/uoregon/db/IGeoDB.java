@@ -1,9 +1,14 @@
 package edu.uoregon.db;
 
 import java.util.List;
+
+import android.os.Environment;
 import edu.uoregon.GeoStamp;
 
-public interface IGeoDB { 
+public interface IGeoDB {
+	public static final String pictureFilePath = Environment.getExternalStorageDirectory() + "/CompleteStreets/pictures/";
+	public static final String audioFilePath = Environment.getExternalStorageDirectory() + "/CompleteStreets/audio/";
+	
 	/**
 	 * Returns all GeoStamps that are currently
 	 * stored in the database.
@@ -64,7 +69,7 @@ public interface IGeoDB {
 	 * @param picture 
 	 * 		The bytes of a recording.
 	 * @return
-	 * 		True of the insertion succeeds, false otherwise 
+	 * 		True if the insertion succeeds, false otherwise 
 	 */
 	public abstract boolean addRecordingToGeoStamp(GeoStamp geoStamp, byte[] recording);
 	
@@ -75,9 +80,20 @@ public interface IGeoDB {
 	 * @param picture
 	 * 		The bytes of a recording.
 	 * @return
-	 * 		True of the insertion succeeds, false otherwise
+	 * 		True if the insertion succeeds, false otherwise
 	 */
 	public abstract boolean addRecordingToGeoStamp(int geoStampID, byte[] recording);
+	
+	/**
+	 * Adds a recording filepath to the GeoStamp with specified ID.
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we want to add a recording to.
+	 * @param recordingFilePath
+	 * 		The filepath for the recording
+	 * @return
+	 * 		True if the insertion succeeds, false otherwise
+	 */
+	public abstract boolean addRecordingToGeoStamp(int geoStampID, String recordingFilePath);
 	
 	/**
 	 * Returns a list of recording from the db that match the given ID
@@ -85,8 +101,18 @@ public interface IGeoDB {
 	 * 		The ID of the GeoStamp that we will use to match against recording
 	 * @return
 	 * 		The list of recordings that match the given geoStampID
+	 * @deprecated Use getRecordingFilePaths instead and extract recordings from that.
 	 */
 	public abstract List<byte[]> getRecordings(int geoStampID);
+	
+	/**
+	 * Returns a list of recording file paths from the db that match the given ID
+	 * @param geoStampID
+	 * 		The ID of the GeoStamp that we will use to match against recording
+	 * @return
+	 * 		The list of recording file paths that match the given geoStampID
+	 */
+	public abstract List<String> getRecordingFilePaths(int geoStampID);
 
 	/**
 	 * Returns a list of pictures from the db that match the given GeoStamp ID

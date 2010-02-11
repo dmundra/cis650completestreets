@@ -154,7 +154,7 @@ public class GeoDBConnector implements IGeoDB {
 			return false;
 		
 		// First, write picture to a file.
-		String picturePath = convertPictureToFile(picture);
+		String picturePath = convertToFile(picture,geoStampID,TYPE_PICTURE);
 		
 		ContentValues values = new ContentValues();
 		values.put(KEY_GEOSTAMP_ID, geoStampID);
@@ -167,6 +167,7 @@ public class GeoDBConnector implements IGeoDB {
 	
 	/**
 	 * @see IGeoDB
+	 * @deprecated
 	 */
 	@Override
 	public boolean addRecordingToGeoStamp(int geoStampID, byte[] recording) {
@@ -176,9 +177,12 @@ public class GeoDBConnector implements IGeoDB {
 		if (geoStampID == GeoStamp.newGeoStamp)
 			return false;
 		
+		// First, write recording to a file.
+		String recordingPath = convertToFile(recording,geoStampID,TYPE_RECORDING);
+		
 		ContentValues values = new ContentValues();
 		values.put(KEY_GEOSTAMP_ID, geoStampID);
-		values.put(RECORDING_KEY_RECORDING, recording);
+		values.put(RECORDING_KEY_RECORDINGPATH, recordingPath);
 		
 		if (db.insert(TABLE_GEOSTAMP_RECORDING, null, values) != -1)
 			return true;
@@ -189,8 +193,29 @@ public class GeoDBConnector implements IGeoDB {
 	 * @see IGeoDB
 	 */
 	@Override
+	public boolean addRecordingToGeoStamp(int geoStampID, String recordingFilePath) {
+		Log.d(this.toString(), "Adding recording to geostamp: " + geoStampID);
+		// We do not want to add a recording to a geostamp
+		// that does not exist in the database.
+		if (geoStampID == GeoStamp.newGeoStamp)
+			return false;
+		
+		ContentValues values = new ContentValues();
+		values.put(KEY_GEOSTAMP_ID, geoStampID);
+		values.put(RECORDING_KEY_RECORDINGPATH, recordingFilePath);
+		
+		if (db.insert(TABLE_GEOSTAMP_RECORDING, null, values) != -1)
+			return true;
+		return false;
+	}
+	
+	/**
+	 * @see IGeoDB
+	 * @deprecated
+	 */
+	@Override
 	public List<byte[]> getRecordings(int geoStampID){
-		Cursor cur = db.query(TABLE_GEOSTAMP_RECORDING, new String[]{RECORDING_KEY_RECORDING}, KEY_GEOSTAMP_ID + " = " + geoStampID, null, null, null, KEY_ROWID);
+		Cursor cur = db.query(TABLE_GEOSTAMP_RECORDING, new String[]{RECORDING_KEY_RECORDINGPATH}, KEY_GEOSTAMP_ID + " = " + geoStampID, null, null, null, KEY_ROWID);
 		ArrayList<byte[]> list = new ArrayList<byte[]>();
 		
 		// If there are some recordings in there
@@ -198,7 +223,28 @@ public class GeoDBConnector implements IGeoDB {
 			
 			// Go through all the recordings 
 			while (!cur.isAfterLast()) {
-				list.add(cur.getBlob(cur.getColumnIndex(RECORDING_KEY_RECORDING)));
+				list.add(getFile(cur.getString(cur.getColumnIndex(RECORDING_KEY_RECORDINGPATH))));
+				cur.moveToNext();
+			}
+		}
+		cur.close();
+		return list;
+	}
+	
+	/**
+	 * @see IGeoDB
+	 */
+	@Override
+	public List<String> getRecordingFilePaths(int geoStampID) {
+		Cursor cur = db.query(TABLE_GEOSTAMP_RECORDING, new String[]{RECORDING_KEY_RECORDINGPATH}, KEY_GEOSTAMP_ID + " = " + geoStampID, null, null, null, KEY_ROWID);
+		ArrayList<String> list = new ArrayList<String>();
+		
+		// If there are some recordings in there
+		if (cur.moveToFirst()) {
+			
+			// Go through all the recordings 
+			while (!cur.isAfterLast()) {
+				list.add(cur.getString(cur.getColumnIndex(RECORDING_KEY_RECORDINGPATH)));
 				cur.moveToNext();
 			}
 		}
@@ -353,7 +399,7 @@ public class GeoDBConnector implements IGeoDB {
 	protected static final String PICTURE_KEY_PICTUREPATH = "picture_path";
 	
 	// Recording fields
-	protected static final String RECORDING_KEY_RECORDING = "recording";
+	protected static final String RECORDING_KEY_RECORDINGPATH = "recording_path";
 	
 	// Relation fields
 	protected static final String KEY_GEOSTAMP_ID = "geostamp_id";
@@ -392,7 +438,7 @@ public class GeoDBConnector implements IGeoDB {
 		"CREATE TABLE " + TABLE_GEOSTAMP_RECORDING +
 		" (" + KEY_ROWID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
 		KEY_GEOSTAMP_ID + " INTEGER NOT NULL, " +
-		RECORDING_KEY_RECORDING + " BLOB NOT NULL)";
+		RECORDING_KEY_RECORDINGPATH + " TEXT NOT NULL)";
 	
 	private static final String RECORDING_DELETE =
 		"DROP TABLE IF EXISTS " + TABLE_GEOSTAMP_RECORDING;
@@ -407,29 +453,51 @@ public class GeoDBConnector implements IGeoDB {
 	 * 		Byte array representing the JPEG picture.
 	 * @return The file path to the picture
 	 */
-	private String convertPictureToFile(byte[] picture) {
-		// See if the picture directory exists
-		File pictureDir = new File(Environment.getExternalStorageDirectory() + "/CompleteStreets/pictures/"); 
-		if(!pictureDir.exists()){
-			if(!pictureDir.mkdirs()){
-				Log.d(this.toString(), "Can't make directory: " + pictureDir.getAbsolutePath());
+	private String convertToFile(byte[] file, int ID, int type) {
+		String dir;
+		switch (type) {
+		case TYPE_PICTURE:
+			dir = IGeoDB.pictureFilePath;
+			break;
+		case TYPE_RECORDING:
+			dir = IGeoDB.audioFilePath;
+			break;
+		default:
+			Log.d(this.toString(), "Wrong type!");
+			return "";
+		}
+		
+		// See if the directory exists
+		File fDir = new File(dir); 
+		if(!fDir.exists()){
+			if(!fDir.mkdirs()){
+				Log.d(this.toString(), "Can't make directory: " + fDir.getAbsolutePath());
 			}
 		}
 
 		Calendar c = Calendar.getInstance();
-		String pictureFileName = "" + c.get(Calendar.YEAR) + 
+		String fileName = "ID" + ID + "_" + 
+			c.get(Calendar.YEAR) + 
 			c.get(Calendar.MONTH) + 
 			c.get(Calendar.DAY_OF_MONTH) + "_" +
 			c.get(Calendar.HOUR_OF_DAY) + 
 			c.get(Calendar.MINUTE) +
-			c.get(Calendar.SECOND) + ".jpg";
+			c.get(Calendar.SECOND);
 		
-		File pictureFile = new File(pictureDir.getAbsolutePath() + "/" + pictureFileName);
+		switch (type) {
+		case TYPE_PICTURE:
+			fileName += ".jpg";
+			break;
+		case TYPE_RECORDING:
+			fileName += ".3gp";
+		}
+		
+		File f = new File(fDir.getAbsolutePath() + "/" + fileName);
 		FileOutputStream fos = null;
 		final String log = "Something went wrong writing the file ";
 		try {
-			fos = new FileOutputStream(pictureFile);
-			IOUtils.write(picture, fos);
+			fos = new FileOutputStream(f);
+			IOUtils.write(file, fos);
 		} catch (FileNotFoundException e) {
 			Log.d(this.toString(), log + e.toString());
 		} catch (IOException e) {
@@ -445,8 +513,11 @@ public class GeoDBConnector implements IGeoDB {
 		}
 
 		// Return the path to the file. 
-		return pictureFile.getAbsolutePath();
+		return f.getAbsolutePath();
 	}
+	
+	private static final int TYPE_PICTURE = 0;
+	private static final int TYPE_RECORDING = 1;
 	
 	/**
 	 * Retrieves a file and converts it to a byte array.

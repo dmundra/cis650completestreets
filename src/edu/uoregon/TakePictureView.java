@@ -47,9 +47,9 @@ public class TakePictureView extends Activity {
 
 	@Override
 	protected void onDestroy() {
+		super.onDestroy();
 		Log.i(TAG, "Camera view closed.");
 		db.close();
-		super.onDestroy();
 	}
 
 	private class CameraPreview extends SurfaceView implements

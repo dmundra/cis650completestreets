@@ -1,11 +1,16 @@
 package edu.uoregon;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.List;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -13,6 +18,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
@@ -38,7 +44,7 @@ public class RecordTabView extends MapActivity {
 	private boolean prevSaved = false;
 	private ImageView recordCheck;
 	private ImageView pictureCheck;
-	private ImageView pictureThumb;
+	private TextView recordStats;
 	private Button cancelButton;
 	private MapView mapThumbView;
 	// Used for logging
@@ -60,7 +66,7 @@ public class RecordTabView extends MapActivity {
 		// Checkmarks are displayed when user saves audio and picture
 		recordCheck = (ImageView) findViewById(R.id.recordCheck);
 		pictureCheck = (ImageView) findViewById(R.id.pictureCheck);
-		pictureThumb = (ImageView) findViewById(R.id.thumbImage);
+		recordStats = (TextView) findViewById(R.id.recordStats);
 
 		// Create geo stamp with current location
 		geoStamp = edu.uoregon.MapTabView.curGeoStamp;
@@ -87,10 +93,9 @@ public class RecordTabView extends MapActivity {
 
 			@Override
 			public void onClick(View v) {
+				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.TakePictureView");
 				Log.i(TAG, "Capture button clicked.");
 
-				Intent intent = new Intent(RecordTabView.this,
-						TakePictureView.class);
 				intent.putExtra("geoStampID", geoStamp.getDatabaseID());
 				Log.i(TAG, "Sending to get picture, id: "
 						+ geoStamp.getDatabaseID());
@@ -154,20 +159,21 @@ public class RecordTabView extends MapActivity {
 		if (recordSaved > 0)
 			recordCheck.setVisibility(View.VISIBLE);
 
-		// List<byte[]> pictures= db.getPictures(geoStamp.getDatabaseID());
 		List<String> pictures = db
 				.getPictureFilePaths(geoStamp.getDatabaseID());
 		Log.i(TAG, "Geostamp Picture Saved: " + pictures.size());
 		if (pictures.size() > 0) {
 			pictureCheck.setVisibility(View.VISIBLE);
-			try {
-				Bitmap bm = BitmapFactory.decodeFile(pictures.get(0));
-				// Bitmap bm = BitmapFactory.decodeByteArray(pictures.get(0), 0,
-				// pictures.get(0).length);
-				pictureThumb.setImageBitmap(bm);
-			} catch (OutOfMemoryError e) {
-				Log.e(TAG, "I want more memory!");
-			}
+			
+			recordStats.setText("For this location you have:\n" +
+					"Recordings: " + recordSaved + "\n" +
+					"Pictures: " + pictures.size());
+//			try {
+//				Bitmap bm = BitmapFactory.decodeFile(pictures.get(0));
+//				pictureThumb.setImageBitmap(bm);
+//			} catch (OutOfMemoryError e) {
+//				Log.e(TAG, "I want more memory!");
+//			}
 		}
 
 		// Load thumbnail map
@@ -225,8 +231,8 @@ public class RecordTabView extends MapActivity {
 	}
 
 	protected void onPause() {
-		Log.i(TAG, "Record view paused.");
 		super.onPause();
+		Log.i(TAG, "Record view paused.");
 		db.close();
 	}
 

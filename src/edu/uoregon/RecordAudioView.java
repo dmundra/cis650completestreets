@@ -15,7 +15,6 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
@@ -34,9 +33,7 @@ public class RecordAudioView extends Activity {
 	// this is what we'll use to play audio:
 	private final MediaPlayer mp = new MediaPlayer();
 	// this is our working directory for audio:
-	private static final String audioDir = Environment
-	        .getExternalStorageDirectory()
-	        + "/CompleteStreets/audio/";
+	private static final String audioDir = IGeoDB.audioFilePath;
 
 	// DB
 	private IGeoDB con;
