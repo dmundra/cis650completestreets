@@ -31,7 +31,7 @@
 			</intent-filter>
 		</activity>
 		<activity android:name=".RecordAudioView"></activity>
-		<activity android:name=".TakePictureView">
+		<activity android:name=".TakePictureView" android:screenOrientation="landscape">
 			<uses-feature android:name="android.hardware.camera" />
 			<uses-feature android:name="android.hardware.camera.autofocus" />
 		</activity>
