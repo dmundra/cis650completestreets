@@ -162,6 +162,11 @@ public class RecordAudioView extends Activity {
 						        "error with the audio, check with support",
 						        Toast.LENGTH_LONG);
 					} else {
+						//hide play/pause:
+						stopStartB.setVisibility(View.INVISIBLE);
+						
+						
+						//now record
 						recorder.start();
 						recordButton.setText(stopRecordingAudio);
 					}
@@ -191,6 +196,8 @@ public class RecordAudioView extends Activity {
 
 				}
 			}
+
+			
 		});
 
 		// play/stop button:
@@ -211,6 +218,9 @@ public class RecordAudioView extends Activity {
 				if (stopStartB.getText().equals(startPlay)) {
 					// TODO: then play it:
 					try {
+						// let's hide our record button:
+						recordButton.setVisibility(View.INVISIBLE);
+						
 						mp.reset();
 						mp.setDataSource(getAudioFilePath(fileName));
 						mp.prepare();
@@ -232,6 +242,9 @@ public class RecordAudioView extends Activity {
 					}
 
 					stopStartB.setText(startPlay);
+					
+					// let's put our record button back on the map:
+					recordButton.setVisibility(View.VISIBLE);
 				}
 			}
 		});
@@ -244,6 +257,9 @@ public class RecordAudioView extends Activity {
 			public void onCompletion(MediaPlayer arg0) {
 				// we should switch over to play mode:
 				stopStartB.setText(startPlay);
+				
+				// let's put our record button back on the map:
+				recordButton.setVisibility(View.VISIBLE);
 			}
 
 		});
@@ -254,6 +270,8 @@ public class RecordAudioView extends Activity {
 		con.close();
 		super.onDestroy();
 	}
+	
+	
 
 	/**
 	 * this is a helper for getting back the file object for the audio recording
