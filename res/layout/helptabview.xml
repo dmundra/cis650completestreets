@@ -3,7 +3,7 @@
 	android:layout_width="wrap_content" android:layout_height="wrap_content">
 	<ScrollView android:id="@+id/helpScrollView"
 		android:layout_width="wrap_content" android:layout_toLeftOf="@+id/helpText"
-		android:layout_height="280px">
+		android:layout_height="wrap_content">
 		<TextView android:layout_width="wrap_content"
 			android:layout_height="wrap_content" android:id="@+id/helpText"
 			android:text="Help and Guidelines"></TextView>
