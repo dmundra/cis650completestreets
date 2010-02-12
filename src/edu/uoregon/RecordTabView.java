@@ -5,7 +5,6 @@ import java.util.List;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -21,6 +20,7 @@ import com.google.android.maps.OverlayItem;
 
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
+import edu.uoregon.log.CSLog;
 
 /**
  * Tab to record location with a picture and voice memo.
@@ -29,6 +29,7 @@ import edu.uoregon.db.IGeoDB;
  * 
  *         David -- 2/6/2010 -- Added picture functionality. Moved some code
  *         from onCreate to onStart.
+ *         David -- 2/11/2010 -- Major revision.
  */
 public class RecordTabView extends MapActivity {
 
@@ -48,7 +49,7 @@ public class RecordTabView extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.recordtabview);
 
-		Log.i(TAG, "Record view started.");
+		CSLog.i(TAG, "Record view started.");
 
 		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
 		final Button recordButton = (Button) findViewById(R.id.recordButton);
@@ -62,19 +63,19 @@ public class RecordTabView extends MapActivity {
 
 		// Create geo stamp with current location
 		geoStamp = edu.uoregon.MapTabView.curGeoStamp;
-		Log.i(TAG, "Geostamp loaded: " + geoStamp);
+		CSLog.i(TAG, "Geostamp loaded: " + geoStamp);
 		
 		recordButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG, "Record button clicked.");
+				CSLog.i(TAG, "Record button clicked.");
 
 				// take us to the record audio page:
 				Intent intent = new Intent(RecordTabView.this,
 						RecordAudioView.class);
 				intent.putExtra("geoId", new Integer(geoStamp.getDatabaseID()));
-				Log.i(TAG, "Sending to get audio, id: "
+				CSLog.i(TAG, "Sending to get audio, id: "
 						+ geoStamp.getDatabaseID());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
@@ -86,10 +87,10 @@ public class RecordTabView extends MapActivity {
 			@Override
 			public void onClick(View v) {
 				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.TakePictureView");
-				Log.i(TAG, "Capture button clicked.");
+				CSLog.i(TAG, "Capture button clicked.");
 
 				intent.putExtra("geoStampID", geoStamp.getDatabaseID());
-				Log.i(TAG, "Sending to get picture, id: "
+				CSLog.i(TAG, "Sending to get picture, id: "
 						+ geoStamp.getDatabaseID());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
@@ -99,12 +100,11 @@ public class RecordTabView extends MapActivity {
 		cancelButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG, "Cancel button clicked.");
+				CSLog.i(TAG, "Cancel button clicked.");
 
 				db.deleteGeoStamp(geoStamp);
-				Log
-						.i(TAG, "Deleted geo stamp, id: "
-								+ geoStamp.getDatabaseID());
+				CSLog.i(TAG, "Deleted geo stamp, id: "
+						+ geoStamp.getDatabaseID());
 				TabHost tabHost = edu.uoregon.Main.mTabHost;
 				tabHost.setCurrentTab(0);
 			}
@@ -117,7 +117,7 @@ public class RecordTabView extends MapActivity {
 	 */
 	protected void onResume() {
 		super.onResume();
-		Log.i(TAG, "Resumed the activity");
+		CSLog.i(TAG, "Resumed the activity");
 
 		db = GeoDBConnector.open(this);
 
@@ -131,7 +131,7 @@ public class RecordTabView extends MapActivity {
 		if (stamps.contains(geoStamp)) {
 			geoStamp.setDatabaseID(stamps.get(stamps.indexOf(geoStamp))
 					.getDatabaseID());
-			Log.i(TAG, "Geostamp already in database, id: "
+			CSLog.i(TAG, "Geostamp already in database, id: "
 					+ geoStamp.getDatabaseID());
 
 			// If the geo stamp was already saved we will use this flag
@@ -139,32 +139,24 @@ public class RecordTabView extends MapActivity {
 			prevSaved = true;
 		} else {
 			db.addGeoStamp(geoStamp);
-			Log.i(TAG, "Geostamp added to database, id: "
-					+ geoStamp.getDatabaseID());
 		}
 		
 		// Check if record was saved before, if yes then put check mark
-		int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();
-		Log.i(TAG, "Geostamp Recordings Saved: " + recordSaved);
+		int recordSaved = db.getRecordingFilePaths(geoStamp.getDatabaseID()).size();
+		CSLog.i(TAG, "Geostamp Recordings Saved: " + recordSaved);
 		if (recordSaved > 0)
 			recordCheck.setVisibility(View.VISIBLE);
 
 		List<String> pictures = db
 				.getPictureFilePaths(geoStamp.getDatabaseID());
-		Log.i(TAG, "Geostamp Picture Saved: " + pictures.size());
+		CSLog.i(TAG, "Geostamp Picture Saved: " + pictures.size());
 		if (pictures.size() > 0) {
 			pictureCheck.setVisibility(View.VISIBLE);
-			
-			recordStats.setText("For this location you have:\n" +
-					"Recordings: " + recordSaved + "\n" +
-					"Pictures: " + pictures.size());
-//			try {
-//				Bitmap bm = BitmapFactory.decodeFile(pictures.get(0));
-//				pictureThumb.setImageBitmap(bm);
-//			} catch (OutOfMemoryError e) {
-//				Log.e(TAG, "I want more memory!");
-//			}
 		}
+		
+		recordStats.setText("For this location you have:\n" +
+				"Recordings: " + recordSaved + "\n" +
+				"Pictures: " + pictures.size());
 
 		// Load thumbnail map
 		loadMapThumb(mapThumbView);
@@ -177,7 +169,7 @@ public class RecordTabView extends MapActivity {
 	 * @param currLoc
 	 */
 	private void loadMapThumb(MapView mapThumbView) {
-		Log.i(TAG, "Load Map");
+		CSLog.i(TAG, "Load Map");
 
 		// Standard view of the map(map/sat)
 		mapThumbView.setSatellite(true);
@@ -190,10 +182,10 @@ public class RecordTabView extends MapActivity {
 		Drawable currLocIcon = null;
 		if (prevSaved) {
 			currLocIcon = getResources().getDrawable(R.drawable.green);
-			Log.i(TAG, "Load green pin!");
+			CSLog.i(TAG, "Load green pin!");
 		} else {
 			currLocIcon = getResources().getDrawable(R.drawable.pin);
-			Log.i(TAG, "Load red pin!");
+			CSLog.i(TAG, "Load red pin!");
 		}
 
 		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
@@ -222,12 +214,12 @@ public class RecordTabView extends MapActivity {
 
 	protected void onPause() {
 		super.onPause();
-		Log.i(TAG, "Record view paused.");
+		CSLog.i(TAG, "View paused.");
 		db.close();
 	}
 
 	protected void onDestroy() {
-		Log.i(TAG, "Record view closed.");
 		super.onDestroy();
+		CSLog.i(TAG, "View closed.");
 	}
 }

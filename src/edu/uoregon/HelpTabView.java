@@ -1,8 +1,8 @@
 package edu.uoregon;
 
+import edu.uoregon.log.CSLog;
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TextView;
 
 /**
@@ -24,7 +24,7 @@ public class HelpTabView extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.helptabview);
 
-		Log.i(TAG, "Help view started.");
+		CSLog.i(TAG, "Help view started.");
 
 		TextView helpText = (TextView) findViewById(R.id.helpText);
 
@@ -57,7 +57,7 @@ public class HelpTabView extends Activity {
 
 	@Override
 	protected void onDestroy() {
-		Log.i(TAG, "Help view closed.");
+		CSLog.i(TAG, "Help view closed.");
 		super.onDestroy();
 	}
 }

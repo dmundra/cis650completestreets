@@ -16,7 +16,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -28,6 +27,7 @@ import com.google.android.maps.OverlayItem;
 
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
+import edu.uoregon.log.CSLog;
 
 /**
  * Map Tab that will show the map and the phone's current location
@@ -66,7 +66,7 @@ public class MapTabView extends MapActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.maptabview);
 
-		Log.i(TAG, "Map view started.");
+		CSLog.i(TAG, "Map view started.");
 
 		mapView = (MapView) findViewById(R.id.mapView);
 		// Show zoom in/out buttons
@@ -89,15 +89,15 @@ public class MapTabView extends MapActivity {
 			// application starts and then the location manager should
 			// manage the location changes.
 			initLocationManager();
-			Log.i(TAG, "Load location manager");
+			CSLog.i(TAG, "Load location manager");
 
 			Location currentLocation = lm
 					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			Log.i(TAG, "Load current location: " + currentLocation);
+			CSLog.i(TAG, "Load current location: " + currentLocation);
 			curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
 					currentLocation.getLongitude());
 			curLocPoint = curGeoStamp.getGeoPoint();
-			Log.i(TAG, "Load current geo point: " + curLocPoint);
+			CSLog.i(TAG, "Load current geo point: " + curLocPoint);
 		} else {
 			try {
 				// Loads default geo stamp
@@ -113,13 +113,13 @@ public class MapTabView extends MapActivity {
 				if (!portNumber.equals("")) {
 					portno = Integer.parseInt(portNumber);
 				}
-				Log.i(TAG, "Got port number: " + portno);
+				CSLog.i(TAG, "Got port number: " + portno);
 
 				// Creates a server socket and starts the socket listener
 				serverSocket = new ServerSocket(portno);
 				new Thread(new SocketLocationListener(serverSocket)).start();
 			} catch (IOException e) {
-				Log.e(TAG, e.getMessage());
+				CSLog.e(TAG, e.getMessage());
 			}
 		}
 
@@ -128,7 +128,7 @@ public class MapTabView extends MapActivity {
 	}
 
 	public void loadMap(boolean nonUI) {
-		Log.i(TAG, "Load Map");
+		CSLog.i(TAG, "Load Map");
 
 		// Sets up a connection to the database.
 		db = GeoDBConnector.open(this);
@@ -155,7 +155,7 @@ public class MapTabView extends MapActivity {
 		boolean currLocNotSaved = true;
 		while (pins.hasNext()) {
 			GeoStamp next = pins.next();
-			Log.i(TAG, "Load saved geostamp: " + next);
+			CSLog.i(TAG, "Load saved geostamp: " + next);
 			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
 			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
 					"Saved Location", null);
@@ -187,8 +187,8 @@ public class MapTabView extends MapActivity {
 
 		// Animate to current location
 		mapControl.animateTo(curLocPoint);
+		CSLog.d(TAG, "Animate to current geo point: " + curLocPoint);
 		checkBorder();
-		Log.d(TAG, "Animate to current geo point: " + curLocPoint);
 
 		if (!nonUI) {
 			mapView.invalidate();
@@ -206,7 +206,7 @@ public class MapTabView extends MapActivity {
 	 * If border is crossed the phone will show a popup and vibrate.
 	 */
 	private void checkBorder() {
-		Log.i(TAG, "Check if border has been crossed.");
+		CSLog.i(TAG, "Check if border has been crossed.");
 		
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -217,7 +217,7 @@ public class MapTabView extends MapActivity {
 
 		if (topText.equals("0.0") && leftText.equals("0.0")
 				&& bottomText.equals("0.0") && rightText.equals("0.0")) {
-			Log.i(TAG, "Border coords were all set to 0.0 which means no border");
+			CSLog.i(TAG, "Border coords were all set to 0.0 which means no border");
 		} else {
 			int top = (int) (Double.parseDouble(topText) * 1E6);
 			int left = (int) (Double.parseDouble(leftText) * 1E6);
@@ -228,7 +228,7 @@ public class MapTabView extends MapActivity {
 					|| curLocPoint.getLongitudeE6() > left
 					|| curLocPoint.getLatitudeE6() < bottom
 					|| curLocPoint.getLongitudeE6() < right) {
-				Log.i(TAG, "Border cross alerted.");
+				CSLog.i(TAG, "Border cross alerted.");
 				Toast.makeText(getApplicationContext(), "Outside the border",
 						Toast.LENGTH_LONG).show();
 				((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
@@ -240,7 +240,7 @@ public class MapTabView extends MapActivity {
 	 * Initialize the location manager
 	 */
 	private void initLocationManager() {
-		Log.i(TAG, "Initialize location manager");
+		CSLog.i(TAG, "Initialize location manager");
 
 		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -249,11 +249,11 @@ public class MapTabView extends MapActivity {
 			public void onLocationChanged(Location newLocation) {
 				Location currentLocation = lm
 						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-				Log.i(TAG, "Location updated: " + currentLocation);
+				CSLog.i(TAG, "Location updated: " + currentLocation);
 				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
 						currentLocation.getLongitude());
 				curLocPoint = curGeoStamp.getGeoPoint();
-				Log.i(TAG, "Geopoint updated: " + curLocPoint);
+				CSLog.i(TAG, "Geopoint updated: " + curLocPoint);
 				loadMap(false);
 			}
 
@@ -279,19 +279,18 @@ public class MapTabView extends MapActivity {
 
 	@Override
 	protected void onDestroy() {
-		Log.i(TAG, "Map view closed.");
+		CSLog.i(TAG, "Map view closed.");
 
 		// On destroy we stop listening to updates
 		if (!socketData) {
-			Log.i(TAG, "Location listerner removed.");
 			lm.removeUpdates(ll);
 		} else {
 			// We close the socket
 			try {
-				Log.i(TAG, "Close socket server.");
+				CSLog.i(TAG, "Close socket server.");
 				serverSocket.close();
 			} catch (IOException e) {
-				Log.e(TAG, e.getMessage());
+				CSLog.e(TAG, e.getMessage());
 			}
 		}
 
@@ -317,10 +316,10 @@ public class MapTabView extends MapActivity {
 
 		@Override
 		public void run() {
-			Log.i(TAG, "Load geopoint from server socket");
+			CSLog.i(TAG, "Load geopoint from server socket");
 			try {
 				while (true) {
-					Log.i(TAG, "Accepting data from socket.");
+					CSLog.i(TAG, "Accepting data from socket.");
 					clientSocket = serverSocket.accept();
 
 					BufferedReader in = new BufferedReader(
@@ -329,7 +328,7 @@ public class MapTabView extends MapActivity {
 					String inputLine = "";
 
 					while ((inputLine = in.readLine()) != null) {
-						Log.i(TAG, "Got data from socket: " + inputLine);
+						CSLog.i(TAG, "Got data from socket: " + inputLine);
 
 						// We are assuming we get data as "lat,lon"
 						String[] data = inputLine.split(",");
@@ -339,14 +338,14 @@ public class MapTabView extends MapActivity {
 						curGeoStamp = new GeoStamp(lat, lon);
 						curLocPoint = curGeoStamp.getGeoPoint();
 
-						Log.i(TAG, "Load current geo point: " + curLocPoint);
+						CSLog.i(TAG, "Load current geo point: " + curLocPoint);
 						loadMap(true);
 					}
 
 					in.close();
 				}
 			} catch (IOException e) {
-				Log.e(TAG, e.getMessage());
+				CSLog.e(TAG, e.getMessage());
 			}
 		}
 	}

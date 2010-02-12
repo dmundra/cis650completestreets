@@ -4,12 +4,12 @@ import java.io.IOException;
 
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
+import edu.uoregon.log.CSLog;
 
 import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -29,7 +29,7 @@ public class TakePictureView extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		Log.i(TAG, "Camera view started.");
+		CSLog.i(TAG, "Camera view started.");
 
 		// Hide the window title.
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -48,7 +48,7 @@ public class TakePictureView extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.i(TAG, "Camera view closed.");
+		CSLog.i(TAG, "Camera view closed.");
 		db.close();
 	}
 
@@ -106,7 +106,7 @@ public class TakePictureView extends Activity {
 
 		@Override
 		public void onPictureTaken(byte[] data, Camera camera) {
-			Log.i(TAG, "Picture taken.");
+			CSLog.i(TAG, "Picture taken.");
 			if (geoStampID != -1) {
 				db.addPictureToGeoStamp(geoStampID, data);
 			}

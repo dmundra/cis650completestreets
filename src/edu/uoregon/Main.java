@@ -1,9 +1,9 @@
 package edu.uoregon;
 
+import edu.uoregon.log.CSLog;
 import android.app.TabActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TabHost;
 import android.widget.TabHost.TabSpec;
 
@@ -25,52 +25,53 @@ public class Main extends TabActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        Log.i(TAG, "Complete Streets Application started.");
+        CSLog.i(TAG, "Complete Streets Application started.");
         
 		// Create and add Map Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec1 = mTabHost.newTabSpec("tab_test1");
 		tabSpec1.setIndicator("Map");
-		Intent i1 = new Intent().setClassName("edu.uoregon", "edu.uoregon.MapTabView"); //ctx, MapTabView.class);
+		Intent i1 = new Intent().setClassName("edu.uoregon", "edu.uoregon.MapTabView");
 		tabSpec1.setContent(i1);
 		mTabHost.addTab(tabSpec1);		
 
-        Log.i(TAG, "Map tab created.");
+        CSLog.i(TAG, "Map tab created.");
 		
 		// Create and add Record Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec2 = mTabHost.newTabSpec("tab_test1");
 		tabSpec2.setIndicator("Record");
-		Intent i2 = new Intent().setClassName("edu.uoregon", "edu.uoregon.RecordTabView"); //ctx, RecordTabView.class);
+		Intent i2 = new Intent().setClassName("edu.uoregon", "edu.uoregon.RecordTabView");
 		tabSpec2.setContent(i2);
 		mTabHost.addTab(tabSpec2);		
 
-        Log.i(TAG, "Record tab created.");
+        CSLog.i(TAG, "Record tab created.");
 		
 		// Create and add Help Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec3 = mTabHost.newTabSpec("tab_test1");
 		tabSpec3.setIndicator("Help");
-		Intent i3 = new Intent().setClassName("edu.uoregon", "edu.uoregon.HelpTabView");//ctx, HelpTabView.class);
+		Intent i3 = new Intent().setClassName("edu.uoregon", "edu.uoregon.HelpTabView");
 		tabSpec3.setContent(i3);
 		mTabHost.addTab(tabSpec3);
 		
-        Log.i(TAG, "Help tab created.");
+        CSLog.i(TAG, "Help tab created.");
 		
 		// Create and add Settings Tab View
 		mTabHost = getTabHost();
 		TabSpec tabSpec4 = mTabHost.newTabSpec("tab_test1");
 		tabSpec4.setIndicator("Settings");
-		Intent i4 = new Intent().setClassName("edu.uoregon", "edu.uoregon.SettingTabView");//ctx, HelpTabView.class);
+		Intent i4 = new Intent().setClassName("edu.uoregon", "edu.uoregon.SettingTabView");
 		tabSpec4.setContent(i4);
 		mTabHost.addTab(tabSpec4);
 		
-        Log.i(TAG, "Setting tab created.");
+        CSLog.i(TAG, "Setting tab created.");
     }
     
     @Override
     protected void onDestroy() {
-        Log.i(TAG, "Complete Streets Application closed.");
     	super.onDestroy();
+        CSLog.i(TAG, "Complete Streets Application closed.");
+    	CSLog.saveLog();
     }
 }

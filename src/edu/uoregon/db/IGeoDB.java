@@ -70,6 +70,7 @@ public interface IGeoDB {
 	 * 		The bytes of a recording.
 	 * @return
 	 * 		True if the insertion succeeds, false otherwise 
+	 * @deprecated because we prefer fileNames
 	 */
 	public abstract boolean addRecordingToGeoStamp(GeoStamp geoStamp, byte[] recording);
 	
@@ -81,11 +82,13 @@ public interface IGeoDB {
 	 * 		The bytes of a recording.
 	 * @return
 	 * 		True if the insertion succeeds, false otherwise
+	 * @deprecated because we prefer fileNames
 	 */
 	public abstract boolean addRecordingToGeoStamp(int geoStampID, byte[] recording);
 	
 	/**
 	 * Adds a recording filepath to the GeoStamp with specified ID.
+	 * The database might rename the recording so it fits the standards of the database better.
 	 * @param geoStampID
 	 * 		The ID of the GeoStamp that we want to add a recording to.
 	 * @param recordingFilePath

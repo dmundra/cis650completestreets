@@ -1,23 +1,22 @@
 package edu.uoregon.db;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-
-import org.apache.commons.io.IOUtils;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 import edu.uoregon.GeoStamp;
+import edu.uoregon.log.CSLog;
 
 /**
  * This class connects to the database storing the all GeoStamps.
@@ -30,6 +29,8 @@ public class GeoDBConnector implements IGeoDB {
 	
 	// Database that this connector is connected to.
 	private SQLiteDatabase db;
+	
+	private final String TAG = "GeoDBConnector"; 
 	
 	/**
 	 * Constructor.
@@ -145,7 +146,7 @@ public class GeoDBConnector implements IGeoDB {
 	 */
 	@Override
 	public boolean addPictureToGeoStamp(int geoStampID, byte[] picture) {
-		Log.d(this.toString(), "Adding picture to geostamp: " + geoStampID);
+		CSLog.i(TAG, "Adding picture to geostamp: " + geoStampID);
 		
 		// We do not want to add a picture to a geostamp
 		// that does not exist in the database.
@@ -170,7 +171,7 @@ public class GeoDBConnector implements IGeoDB {
 	 */
 	@Override
 	public boolean addRecordingToGeoStamp(int geoStampID, byte[] recording) {
-		Log.d(this.toString(), "Adding recording to geostamp: " + geoStampID);
+		CSLog.i(TAG, "Adding recording to geostamp: " + geoStampID);
 		// We do not want to add a recording to a geostamp
 		// that does not exist in the database.
 		if (geoStampID == GeoStamp.newGeoStamp)
@@ -193,11 +194,13 @@ public class GeoDBConnector implements IGeoDB {
 	 */
 	@Override
 	public boolean addRecordingToGeoStamp(int geoStampID, String recordingFilePath) {
-		Log.d(this.toString(), "Adding recording to geostamp: " + geoStampID);
+		CSLog.i(TAG, "Adding recording to geostamp: " + geoStampID);
 		// We do not want to add a recording to a geostamp
 		// that does not exist in the database.
 		if (geoStampID == GeoStamp.newGeoStamp)
 			return false;
+		
+		recordingFilePath = recordingPathFix(recordingFilePath, geoStampID);
 		
 		ContentValues values = new ContentValues();
 		values.put(KEY_GEOSTAMP_ID, geoStampID);
@@ -442,15 +445,11 @@ public class GeoDBConnector implements IGeoDB {
 	private static final String RECORDING_DELETE =
 		"DROP TABLE IF EXISTS " + TABLE_GEOSTAMP_RECORDING;
 	
-	public String toString() {
-		return "Database GeoDBConnector";
-	}
-	
 	/**
-	 * Converts and saves a picture to the filesystem
-	 * @param picture
-	 * 		Byte array representing the JPEG picture.
-	 * @return The file path to the picture
+	 * Converts and saves a file to the filesystem
+	 * @param file
+	 * 		Byte array representing the file.
+	 * @return The path to the file
 	 */
 	private String convertToFile(byte[] file, int ID, int type) {
 		String dir;
@@ -462,7 +461,7 @@ public class GeoDBConnector implements IGeoDB {
 			dir = IGeoDB.audioFilePath;
 			break;
 		default:
-			Log.d(this.toString(), "Wrong type!");
+			CSLog.d(TAG, "Wrong type!");
 			return "";
 		}
 		
@@ -470,7 +469,7 @@ public class GeoDBConnector implements IGeoDB {
 		File fDir = new File(dir); 
 		if(!fDir.exists()){
 			if(!fDir.mkdirs()){
-				Log.d(this.toString(), "Can't make directory: " + fDir.getAbsolutePath());
+				CSLog.d(TAG, "Can't make directory: " + fDir.getAbsolutePath());
 			}
 		}
 
@@ -489,26 +488,18 @@ public class GeoDBConnector implements IGeoDB {
 			break;
 		case TYPE_RECORDING:
 			fileName += ".3gp";
+			break;
 		}
 		
 		File f = new File(fDir.getAbsolutePath() + "/" + fileName);
-		FileOutputStream fos = null;
-		final String log = "Something went wrong writing the file ";
 		try {
-			fos = new FileOutputStream(f);
-			IOUtils.write(file, fos);
+			PrintStream fos = new PrintStream(f);
+			fos.write(file);
+			fos.close();
 		} catch (FileNotFoundException e) {
-			Log.d(this.toString(), log + e.toString());
+			CSLog.e(TAG, e.getMessage());
 		} catch (IOException e) {
-			Log.d(this.toString(), log + e.toString());
-		} finally {
-			if (fos != null) {
-				try {
-					fos.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
+			
 		}
 
 		// Return the path to the file. 
@@ -519,32 +510,39 @@ public class GeoDBConnector implements IGeoDB {
 	private static final int TYPE_RECORDING = 1;
 	
 	/**
+	 * Reads a recording and saves it in the proper spot.
+	 * @param filepath
+	 * @param ID
+	 * @return
+	 */
+	private String recordingPathFix(String filepath, int ID) {
+		byte[] b = getFile(filepath);
+		return convertToFile(b, ID, TYPE_RECORDING);
+	}
+	
+	/**
 	 * Retrieves a file and converts it to a byte array.
 	 * @param filepath
 	 * @return
 	 */
 	private byte[] getFile(String filepath) {
-		byte[] ret = new byte[0];
-
-		final String log = "Something went wrong writing the file ";
-		FileInputStream fis = null;
+		byte[] res = new byte[0];
 		try {
-			fis = new FileInputStream(filepath);
-			ret = IOUtils.toByteArray(fis);
+			File f = new File(filepath);
+			res = new byte[(int)f.length()];
+			BufferedInputStream is = new BufferedInputStream(new FileInputStream(f));
+	        int offset = 0;
+	        int numRead = 0;
+	        while (offset < res.length && (numRead=is.read(res, offset, res.length-offset)) >= 0) {
+	            offset += numRead;
+	        }
+			is.close();
 		} catch (FileNotFoundException e) {
-			Log.d(this.toString(), log + e.toString());
+			CSLog.e(TAG, e.getMessage());
 		} catch (IOException e) {
-			Log.d(this.toString(), log + e.toString());
-		} finally {
-			if (fis != null) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-					// ignore
-				}
-			}
+			CSLog.e(TAG, e.getMessage());
 		}
 
-		return ret;
+		return res;
 	}
 }
