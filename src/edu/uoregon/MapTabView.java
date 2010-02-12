@@ -15,7 +15,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -39,6 +41,10 @@ public class MapTabView extends MapActivity {
 	private static LocationListener ll;
 	private static boolean socketData;
 	private MapView mapView;
+	private final int ZOOMLEVEL = 20;
+	private final int LLDISTANCE = 5;
+	private final double DEFAULT_LAT = 37.422006;
+	private final double DEFAULT_LON = -122.084095;
 	private MapController mapControl;
 	private IGeoDB db;
 
@@ -70,10 +76,11 @@ public class MapTabView extends MapActivity {
 
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
-		mapControl.setZoom(20);
+		mapControl.setZoom(ZOOMLEVEL);
 
-		// Load preferences for whether service started or not
+		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		// Get preference for whether service started or not
 		socketData = settings.getBoolean("serviceStart", false);
 
 		if (!socketData) {
@@ -95,13 +102,21 @@ public class MapTabView extends MapActivity {
 			try {
 				// Loads default geo stamp
 				if (defaultStamp) {
-					curGeoStamp = new GeoStamp(37.422006, -122.084095);
+					curGeoStamp = new GeoStamp(DEFAULT_LAT, DEFAULT_LON);
 					curLocPoint = curGeoStamp.getGeoPoint();
 					defaultStamp = false;
 				}
 
+				// Get port number from preferences
+				String portNumber = settings.getString("portnumber", "");
+				int portno = PORTNO;
+				if (!portNumber.equals("")) {
+					portno = Integer.parseInt(portNumber);
+				}
+				Log.i(TAG, "Got port number: " + portno);
+
 				// Creates a server socket and starts the socket listener
-				serverSocket = new ServerSocket(PORTNO);
+				serverSocket = new ServerSocket(portno);
 				new Thread(new SocketLocationListener(serverSocket)).start();
 			} catch (IOException e) {
 				Log.e(TAG, e.getMessage());
@@ -118,7 +133,8 @@ public class MapTabView extends MapActivity {
 		// Sets up a connection to the database.
 		db = GeoDBConnector.open(this);
 
-		// Initialize icon
+		// Initialize icons, current is red, saved is green, current saved is
+		// purple
 		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
 		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
 				currLocIcon.getIntrinsicHeight());
@@ -171,6 +187,7 @@ public class MapTabView extends MapActivity {
 
 		// Animate to current location
 		mapControl.animateTo(curLocPoint);
+		checkBorder();
 		Log.d(TAG, "Animate to current geo point: " + curLocPoint);
 
 		if (!nonUI) {
@@ -182,6 +199,41 @@ public class MapTabView extends MapActivity {
 
 		// Close db
 		db.close();
+	}
+
+	/**
+	 * Method to check whether current location is outside the border.
+	 * If border is crossed the phone will show a popup and vibrate.
+	 */
+	private void checkBorder() {
+		Log.i(TAG, "Check if border has been crossed.");
+		
+		// Load preferences file
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		String topText = settings.getString("topcoord", "0.0");
+		String leftText = settings.getString("leftcoord", "0.0");
+		String bottomText = settings.getString("bottomcoord", "0.0");
+		String rightText = settings.getString("rightcoord", "0.0");
+
+		if (topText.equals("0.0") && leftText.equals("0.0")
+				&& bottomText.equals("0.0") && rightText.equals("0.0")) {
+			// Dont do anything
+		} else {
+			int top = (int) (Double.parseDouble(topText) * 1E6);
+			int left = (int) (Double.parseDouble(leftText) * 1E6);
+			int bottom = (int) (Double.parseDouble(bottomText) * 1E6);
+			int right = (int) (Double.parseDouble(rightText) * 1E6);
+
+			if (curLocPoint.getLatitudeE6() > top
+					|| curLocPoint.getLongitudeE6() > left
+					|| curLocPoint.getLatitudeE6() < bottom
+					|| curLocPoint.getLongitudeE6() < right) {
+				Log.i(TAG, "Border cross alerted.");
+				Toast.makeText(getApplicationContext(), "Outside the border",
+						Toast.LENGTH_LONG).show();
+				((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+			}
+		}
 	}
 
 	/**
@@ -216,7 +268,8 @@ public class MapTabView extends MapActivity {
 		};
 
 		// Current location is updated when user moves 10 meters.
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 10, ll);
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, LLDISTANCE,
+				ll);
 	}
 
 	@Override

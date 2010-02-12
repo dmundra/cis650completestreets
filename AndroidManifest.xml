@@ -30,14 +30,16 @@
 				<action android:name="android.intent.action.MAIN"></action>
 			</intent-filter>
 		</activity>
-		<activity android:label="@string/settingtabview" android:name=".SettingTabView">
+		<activity android:label="@string/settingtabview"
+			android:name=".SettingTabView">
 			<intent-filter>
 				<category android:name="android.intent.category.EMBED"></category>
 				<action android:name="android.intent.action.MAIN"></action>
 			</intent-filter>
 		</activity>
 		<activity android:name=".RecordAudioView"></activity>
-		<activity android:name=".TakePictureView" android:screenOrientation="landscape">
+		<activity android:name=".TakePictureView"
+			android:screenOrientation="landscape">
 			<uses-feature android:name="android.hardware.camera" />
 			<uses-feature android:name="android.hardware.camera.autofocus" />
 		</activity>
@@ -49,4 +51,5 @@
 	<uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.CAMERA" />
+	<uses-permission android:name="android.permission.VIBRATE" />
 </manifest> 

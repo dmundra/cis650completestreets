@@ -184,7 +184,7 @@ public class RecordTabView extends MapActivity {
 
 		// Map Controller, we want the zoom to be close to street level
 		MapController mapControl = mapThumbView.getController();
-		mapControl.setZoom(18);
+		mapControl.setZoom(20);
 
 		// Initialize icon
 		Drawable currLocIcon = null;

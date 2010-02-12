@@ -18,14 +18,13 @@ import com.google.android.maps.OverlayItem;
  */
 public class MapOverlay extends ItemizedOverlay<OverlayItem> {
 	private final List<OverlayItem> items;
-	
+
 	public MapOverlay(Drawable defaultMarker) {
 		super(defaultMarker);
 		boundCenterBottom(defaultMarker);
-		
 		items = new ArrayList<OverlayItem>();
 	}
-	
+
 	public void addItem(OverlayItem item) {
 		items.add(item);
 		populate();
