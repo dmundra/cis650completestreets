@@ -19,6 +19,7 @@ import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
 
 /**
+ * Settings tab will house all preferences pertaining to this app
  * @author Daniel Mundra
  * 
  */

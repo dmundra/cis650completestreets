@@ -42,7 +42,7 @@ public class MapTabView extends MapActivity {
 	private static boolean socketData;
 	private MapView mapView;
 	private final int ZOOMLEVEL = 20;
-	private final int LLDISTANCE = 5;
+	private final int LLDISTANCE = 10;
 	private final double DEFAULT_LAT = 37.422006;
 	private final double DEFAULT_LON = -122.084095;
 	private MapController mapControl;
@@ -217,7 +217,7 @@ public class MapTabView extends MapActivity {
 
 		if (topText.equals("0.0") && leftText.equals("0.0")
 				&& bottomText.equals("0.0") && rightText.equals("0.0")) {
-			// Dont do anything
+			Log.i(TAG, "Border coords were all set to 0.0 which means no border");
 		} else {
 			int top = (int) (Double.parseDouble(topText) * 1E6);
 			int left = (int) (Double.parseDouble(leftText) * 1E6);
