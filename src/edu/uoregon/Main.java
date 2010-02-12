@@ -1,7 +1,6 @@
 package edu.uoregon;
 
 import android.app.TabActivity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -57,6 +56,16 @@ public class Main extends TabActivity {
 		mTabHost.addTab(tabSpec3);
 		
         Log.i(TAG, "Help tab created.");
+		
+		// Create and add Settings Tab View
+		mTabHost = getTabHost();
+		TabSpec tabSpec4 = mTabHost.newTabSpec("tab_test1");
+		tabSpec4.setIndicator("Settings");
+		Intent i4 = new Intent().setClassName("edu.uoregon", "edu.uoregon.SettingTabView");//ctx, HelpTabView.class);
+		tabSpec4.setContent(i4);
+		mTabHost.addTab(tabSpec4);
+		
+        Log.i(TAG, "Setting tab created.");
     }
     
     @Override

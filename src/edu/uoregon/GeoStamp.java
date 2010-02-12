@@ -1,5 +1,7 @@
 package edu.uoregon;
 
+import java.text.DecimalFormat;
+
 import com.google.android.maps.GeoPoint;
 
 /**
@@ -15,14 +17,17 @@ public class GeoStamp {
 	private int databaseID = newGeoStamp;
 	private final double latitude;
 	private final double longitude;
+	
+	// Used to truncate the lat and lon information to only six decimals places.
+	private final DecimalFormat df = new DecimalFormat("#.000000");
 
 	/**
 	 * Constructor for GeoStamp If the geostamp is created without a database
 	 * id, it is currently unrelated to a database item.
 	 */
-	public GeoStamp(double lat, double lon) {
-		this.latitude = lat;
-		this.longitude = lon;
+	public GeoStamp(double lat, double lon) {		
+		this.latitude = Double.parseDouble(df.format(lat));
+		this.longitude = Double.parseDouble(df.format(lon));
 	}
 
 	/**
@@ -30,8 +35,8 @@ public class GeoStamp {
 	 * only be called from the database connector.
 	 */
 	public GeoStamp(double lat, double lon, int databaseID) {
-		this.latitude = lat;
-		this.longitude = lon;
+		this.latitude = Double.parseDouble(df.format(lat));
+		this.longitude = Double.parseDouble(df.format(lon));
 		this.databaseID = databaseID;
 	}
 

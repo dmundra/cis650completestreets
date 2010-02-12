@@ -70,7 +70,7 @@ public class MapTabView extends MapActivity {
 
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
-		mapControl.setZoom(18);
+		mapControl.setZoom(20);
 
 		// Load preferences for whether service started or not
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -99,7 +99,7 @@ public class MapTabView extends MapActivity {
 					curLocPoint = curGeoStamp.getGeoPoint();
 					defaultStamp = false;
 				}
-				
+
 				// Creates a server socket and starts the socket listener
 				serverSocket = new ServerSocket(PORTNO);
 				new Thread(new SocketLocationListener(serverSocket)).start();
@@ -127,7 +127,10 @@ public class MapTabView extends MapActivity {
 		currLocIcon.setBounds(0, 0, saveLocIcon.getIntrinsicWidth(),
 				saveLocIcon.getIntrinsicHeight());
 
-		MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
+		Drawable saveCurLocIcon = getResources().getDrawable(R.drawable.purple);
+		currLocIcon.setBounds(0, 0, saveCurLocIcon.getIntrinsicWidth(),
+				saveCurLocIcon.getIntrinsicHeight());
+
 		List<Overlay> listOfOverlays = mapView.getOverlays();
 		listOfOverlays.clear();
 
@@ -151,12 +154,19 @@ public class MapTabView extends MapActivity {
 		}
 
 		// If current location is not save then it will display
-		// with red pin
+		// with red pin else load a purple pin
 		if (currLocNotSaved) {
+			MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
 			OverlayItem curLocItem = new OverlayItem(curLocPoint,
 					"Current Location", null);
 			curLocOverlay.addItem(curLocItem);
 			listOfOverlays.add(curLocOverlay);
+		} else {
+			MapOverlay saveCurrOverlay = new MapOverlay(saveCurLocIcon);
+			OverlayItem saveCurLocItem = new OverlayItem(curLocPoint,
+					"Saved Current Location", null);
+			saveCurrOverlay.addItem(saveCurLocItem);
+			listOfOverlays.add(saveCurrOverlay);
 		}
 
 		// Animate to current location

@@ -1,16 +1,9 @@
 package edu.uoregon;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.List;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -45,7 +38,6 @@ public class RecordTabView extends MapActivity {
 	private ImageView recordCheck;
 	private ImageView pictureCheck;
 	private TextView recordStats;
-	private Button cancelButton;
 	private MapView mapThumbView;
 	// Used for logging
 	private static final String TAG = "RecordTabViewLog";
@@ -58,7 +50,7 @@ public class RecordTabView extends MapActivity {
 
 		Log.i(TAG, "Record view started.");
 
-		cancelButton = (Button) findViewById(R.id.cancelButton);
+		final Button cancelButton = (Button) findViewById(R.id.cancelButton);
 		final Button recordButton = (Button) findViewById(R.id.recordButton);
 		final Button captureButton = (Button) findViewById(R.id.pictureButton);
 		mapThumbView = (MapView) findViewById(R.id.mapThumbView);
@@ -150,8 +142,6 @@ public class RecordTabView extends MapActivity {
 			Log.i(TAG, "Geostamp added to database, id: "
 					+ geoStamp.getDatabaseID());
 		}
-		
-		if(prevSaved) cancelButton.setText("Delete");
 		
 		// Check if record was saved before, if yes then put check mark
 		int recordSaved = db.getRecordings(geoStamp.getDatabaseID()).size();

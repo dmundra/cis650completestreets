@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content" android:layout_height="wrap_content">
+	<CheckBox android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:id="@+id/socketCheck"
+		android:text="Started Socket Service" android:layout_marginLeft="10px" android:layout_marginTop="5px" />
+	<Button android:layout_below="@id/socketCheck"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:id="@+id/clearAllButton" android:layout_marginLeft="10px"
+		android:text="Clear Geo Stamps" android:layout_marginTop="30px"/>
+	<Button android:layout_below="@id/socketCheck"
+		android:layout_toRightOf="@id/clearAllButton"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:id="@+id/recreateAllButton" android:layout_marginLeft="10px"
+		android:text="Recreate tables" android:layout_marginTop="30px"/>
+</RelativeLayout>
