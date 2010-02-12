@@ -66,4 +66,8 @@
 
 
 
+	<Button android:layout_below="@id/clearAllButton"
+		android:layout_width="wrap_content" android:layout_height="wrap_content"
+		android:id="@+id/saveLogButton" android:layout_marginLeft="10px"
+		android:text="Save log" android:layout_marginTop="30px"/>
 </RelativeLayout>
