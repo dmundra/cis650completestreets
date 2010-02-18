@@ -22,6 +22,7 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.MyLocationOverlay;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
@@ -73,10 +74,15 @@ public class MapTabView extends MapActivity {
 		mapView.setBuiltInZoomControls(true);
 		// Standard view of the map(map/sat)
 		mapView.setSatellite(true);
-
+	
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
 		mapControl.setZoom(ZOOMLEVEL);
+		
+		// TODO: Get compass data if set before, need to tested
+		MyLocationOverlay myLocation = new MyLocationOverlay(this, mapView);
+		myLocation.enableCompass();
+		CSLog.i(TAG, "Current bearing: " + myLocation.getOrientation());
 
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
