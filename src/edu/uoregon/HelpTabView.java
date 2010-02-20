@@ -29,30 +29,18 @@ public class HelpTabView extends Activity {
 		TextView helpText = (TextView) findViewById(R.id.helpText);
 
 		// Load help/guidelines text
-		// TODO: Right now just placeholder text
+		helpText.setTextSize(15);
 		helpText
-				.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-						+ "Donec tristique semper justo at posuere. In vitae tortor ac "
-						+ "velit tristique vehicula. Donec nec libero ut urna aliquet "
-						+ "pharetra eget sed velit. Phasellus ut purus et enim iaculis "
-						+ "porta sit amet ac est. Sed pharetra suscipit quam, vel ornare "
-						+ "eros laoreet nec. Aenean adipiscing risus ac mi tincidunt "
-						+ "pharetra. Sed turpis lacus, elementum a pretium non, interdum "
-						+ "vitae justo. Etiam dignissim feugiat vulputate. Quisque hendrerit, "
-						+ "est non ultrices viverra, orci odio consectetur est, ut ultricies "
-						+ "odio turpis at dui. Ut hendrerit imperdiet nisi eget fringilla. "
-						+ "Pellentesque non nibh diam. Fusce sagittis, orci et commodo auctor, "
-						+ "pharetra. Sed turpis lacus, elementum a pretium non, interdum "
-						+ "vitae justo. Etiam dignissim feugiat vulputate. Quisque hendrerit, "
-						+ "est non ultrices viverra, orci odio consectetur est, ut ultricies "
-						+ "odio turpis at dui. Ut hendrerit imperdiet nisi eget fringilla. "
-						+ "Pellentesque non nibh diam. Fusce sagittis, orci et commodo auctor, "
-						+ "pharetra. Sed turpis lacus, elementum a pretium non, interdum "
-						+ "vitae justo. Etiam dignissim feugiat vulputate. Quisque hendrerit, "
-						+ "est non ultrices viverra, orci odio consectetur est, ut ultricies "
-						+ "odio turpis at dui. Ut hendrerit imperdiet nisi eget fringilla. "
-						+ "Pellentesque non nibh diam. Fusce sagittis, orci et commodo auctor, "
-						+ "nisi sem luctus erat, vel egestas lorem mauris eget ligula. ");
+				.setText("Guidelines: \n"
+						+ "* Explore the 9 square block area. \n\n"
+						+ "* In each linear block, please find and note an establishment "
+						+ "that sells and/or serves food (e.g. restaurants, cafes, markets). \n\n"
+						+ "* If there are no such establishments on a block, please note that lack. "
+						+ "To make a note, please take a picture of the building or a representative sign or record an "
+						+ "audio clip describing the establishment (e.g. name, description of the sign, "
+						+ "statement of how it was identified as selling/serving food). \n\n"
+						+ "* During the period of the trial, please take at least one picture and make at least one audio note. \n\n"
+						+ "[Notes on the application (e.g. “The camera is accessed on the record tab”).]");
 	}
 
 	@Override
