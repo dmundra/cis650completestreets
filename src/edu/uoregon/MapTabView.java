@@ -8,7 +8,11 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.List;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -16,6 +20,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
@@ -42,7 +49,7 @@ public class MapTabView extends MapActivity {
 	private static boolean socketData;
 	private MapView mapView;
 	private final int ZOOMLEVEL = 20;
-	private final int LLDISTANCE = 10;
+	private final int LLDISTANCE = 5;
 	private final double DEFAULT_LAT = 37.422006;
 	private final double DEFAULT_LON = -122.084095;
 	private MapController mapControl;
@@ -125,6 +132,15 @@ public class MapTabView extends MapActivity {
 
 		// Load map with all pins
 		loadMap(false);
+		
+		// Setup the record button
+		Button record = (Button) findViewById(R.id.recordFromMapTab);
+		record.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				showDialog(DIALOG_RECORD);
+			}
+		});
 	}
 
 	public void loadMap(boolean nonUI) {
@@ -349,4 +365,94 @@ public class MapTabView extends MapActivity {
 			}
 		}
 	}
+	
+	/**
+	 * Creates the record dialog.
+	 */
+	@Override
+	protected Dialog onCreateDialog(int id) {
+		Dialog dialog = null;
+	    switch(id) {
+	    case DIALOG_RECORD: {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			final CharSequence[] items = {"Take picture", "Record audio"};
+
+			builder.setTitle("Record location")
+			.setItems(items, new DialogInterface.OnClickListener() {
+			    public void onClick(DialogInterface dialog, int item) {
+			    	switch (item) {
+			    	case 0: { // Picture
+						Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.TakePictureView");
+						CSLog.i(TAG, "Record picture clicked.");
+
+						// Update the current geoStamp
+						updateGeoStamp();
+						
+						// Put the database id into the intent
+						intent.putExtra("geoStampID", curGeoStamp.getDatabaseID());
+						CSLog.i(TAG, "Sending to get picture, id: "
+								+ curGeoStamp.getDatabaseID());
+						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						startActivity(intent);
+			    		break;
+			    	}
+			    	case 1: { // Audio
+						CSLog.i(TAG, "Record audio clicked.");
+						
+						// Update the current geoStamp
+						updateGeoStamp();
+						
+						// Put the database id into the intent
+						Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.RecordAudioView");
+						intent.putExtra("geoId", new Integer(curGeoStamp.getDatabaseID()));
+						CSLog.i(TAG, "Sending to get audio, id: "
+								+ curGeoStamp.getDatabaseID());
+						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						startActivity(intent);
+			    		break;
+			    	}
+			    	}
+			        
+			    }
+			})
+			.setCancelable(false)
+			.setPositiveButton("Done", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
+			});
+			dialog = builder.create();
+	        break;
+	    }
+	    }
+	    return dialog;
+	}
+	
+	private static final int DIALOG_RECORD = 0;
+	
+	private void updateGeoStamp() {
+		if (curGeoStamp.isNew()) {
+			db = GeoDBConnector.open(this);
+			db.addGeoStamp(curGeoStamp);
+			db.close();
+		}
+	}
+	
+//    /**
+//     * Invoked during init to give the Activity a chance to set up its Menu.
+//     * 
+//     * @param menu the Menu to which entries may be added
+//     * @return true
+//     */
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        super.onCreateOptionsMenu(menu);
+//        menu.add(Menu.NONE, MENU_BACK_TO_MAIN, Menu.NONE, R.string.back_to_menu_text);
+//        menu.add(Menu.NONE, MENU_INSTRUCTIONS, Menu.NONE, R.string.instructions_text);
+//        return true;
+//    }
+//    
+//    private static final int MENU_PICTURE = 0;
+//	private static final int MENU_RECORDING = 1;
+//	private static final int MENU_SETTINGS
 }

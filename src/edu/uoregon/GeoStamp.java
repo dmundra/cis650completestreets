@@ -106,6 +106,10 @@ public class GeoStamp {
 		boolean isLonEQ = Math.abs(this.longitude - g.getLongitude()) < EPSILON;		
 		return isLatEQ && isLonEQ;
 	}
+	
+	public boolean isNew() {
+		return (databaseID == newGeoStamp);
+	}
 
 	public static final int newGeoStamp = -1;
 }

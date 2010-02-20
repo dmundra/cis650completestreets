@@ -38,6 +38,7 @@ public class Main extends TabActivity {
         CSLog.i(TAG, "Map tab created.");
 		
 		// Create and add Record Tab View
+        /*
 		mTabHost = getTabHost();
 		TabSpec tabSpec2 = mTabHost.newTabSpec("tab_test1");
 		tabSpec2.setIndicator("Record");
@@ -46,6 +47,7 @@ public class Main extends TabActivity {
 		mTabHost.addTab(tabSpec2);		
 
         CSLog.i(TAG, "Record tab created.");
+        */
 		
 		// Create and add Help Tab View
 		mTabHost = getTabHost();
