@@ -11,4 +11,12 @@
 <string name="audioStopPlay">Stop Playing</string>
 <string name="audioStartPlay">Play Audio</string>
 <string name="pictureTake">Take picture</string>
+<string name="instructions">* Explore the 9 square block area. \n\n
+						* In each linear block, please find and note an establishment
+						that sells and/or serves food (e.g. restaurants, cafes, markets). \n\n
+						* If there are no such establishments on a block, please note that lack.
+						To make a note, please take a picture of the building or a representative sign or record an
+						audio clip describing the establishment (e.g. name, description of the sign,
+						statement of how it was identified as selling/serving food). \n\n
+						* During the period of the trial, please take at least one picture and make at least one audio note.</string>
 </resources>

@@ -9,8 +9,10 @@ import android.widget.TabHost.TabSpec;
 
 /**
  * Class that manages the tabs in the app
- * @author Daniel Mundra
- *
+ * 
+ * 		David -- 2/20/2010 -- Deprecated this tab
+ * 
+ * @deprecated Removed the tabs which makes this class deprecated.
  */
 public class Main extends TabActivity {
 	

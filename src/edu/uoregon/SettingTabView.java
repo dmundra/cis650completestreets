@@ -22,6 +22,7 @@ import edu.uoregon.log.CSLog;
  * Settings tab will house all preferences pertaining to this app
  * @author Daniel Mundra
  * 
+ * David -- 2/20/2010 -- Added close button
  */
 public class SettingTabView extends Activity {
 
@@ -187,6 +188,16 @@ public class SettingTabView extends Activity {
 				SharedPreferences.Editor editor = settings.edit();
 				editor.putBoolean("serviceStart", serviceStart);
 				editor.commit();
+			}
+		});
+		
+		Button backButton = (Button) findViewById(R.id.closeSettingsButton);
+		backButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+
+				// return to our calling activity
+				finish();
 			}
 		});
 	}

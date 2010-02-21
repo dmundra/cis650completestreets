@@ -11,7 +11,8 @@ import android.widget.TextView;
  * @author Daniel Mundra
  * 
  *         David -- 2/6/2010 -- Added recreate tables button.
- * 
+ *         David -- 2/20/2010 -- Deprecated this tab
+ * @deprecated Tabs have been removed which deprecates this class.
  */
 public class HelpTabView extends Activity {
 
@@ -40,7 +41,7 @@ public class HelpTabView extends Activity {
 						+ "audio clip describing the establishment (e.g. name, description of the sign, "
 						+ "statement of how it was identified as selling/serving food). \n\n"
 						+ "* During the period of the trial, please take at least one picture and make at least one audio note. \n\n"
-						+ "[Notes on the application (e.g. “The camera is accessed on the record tab”).]");
+						+ "[Notes on the application (e.g. ï¿½The camera is accessed on the record tabï¿½).]");
 	}
 
 	@Override

@@ -30,6 +30,8 @@ import edu.uoregon.log.CSLog;
  *         David -- 2/6/2010 -- Added picture functionality. Moved some code
  *         from onCreate to onStart.
  *         David -- 2/11/2010 -- Major revision.
+ *         David -- 2/20/2010 -- Deprecated this tab
+ * @deprecated Tabs are removed. Therefore, this class is deprecated
  */
 public class RecordTabView extends MapActivity {
 

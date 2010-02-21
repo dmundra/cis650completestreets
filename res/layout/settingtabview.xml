@@ -66,4 +66,11 @@
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:id="@+id/saveLogButton" android:layout_marginLeft="10px"
 		android:text="Save log" android:layout_marginTop="10px"/>
+		
+	<Button 
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		android:id="@+id/closeSettingsButton"
+		android:text="Close settings"
+		android:layout_alignParentBottom = "true"
+		android:layout_centerInParent = "true"/>
 </RelativeLayout>

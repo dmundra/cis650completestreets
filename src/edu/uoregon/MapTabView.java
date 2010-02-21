@@ -20,6 +20,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -41,6 +43,8 @@ import edu.uoregon.log.CSLog;
  * 
  * @author Daniel Mundra
  * 
+ * David -- 2/20/2010 -- Added menu functionality and record button.
+ * 						This is now the main activity. See {@link Main}
  */
 public class MapTabView extends MapActivity {
 
@@ -367,12 +371,13 @@ public class MapTabView extends MapActivity {
 	}
 	
 	/**
-	 * Creates the record dialog.
+	 * Creates dialog boxes.
 	 */
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		Dialog dialog = null;
 	    switch(id) {
+	    // Record dialog
 	    case DIALOG_RECORD: {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			final CharSequence[] items = {"Take picture", "Record audio"};
@@ -424,11 +429,26 @@ public class MapTabView extends MapActivity {
 			dialog = builder.create();
 	        break;
 	    }
+	    // Instructions dialog
+	    case DIALOG_HELP: {
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("Instructions")
+				.setMessage(getString(R.string.instructions))
+				.setCancelable(false)
+				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+			           public void onClick(DialogInterface dialog, int id) {
+			        	   dialog.cancel();
+			           }
+			       });
+			dialog = builder.create();
+	        break;
+	    }
 	    }
 	    return dialog;
 	}
 	
-	private static final int DIALOG_RECORD = 0;
+	private final int DIALOG_RECORD = 0;
+	private final int DIALOG_HELP = 1;
 	
 	private void updateGeoStamp() {
 		if (curGeoStamp.isNew()) {
@@ -438,21 +458,43 @@ public class MapTabView extends MapActivity {
 		}
 	}
 	
-//    /**
-//     * Invoked during init to give the Activity a chance to set up its Menu.
-//     * 
-//     * @param menu the Menu to which entries may be added
-//     * @return true
-//     */
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        super.onCreateOptionsMenu(menu);
-//        menu.add(Menu.NONE, MENU_BACK_TO_MAIN, Menu.NONE, R.string.back_to_menu_text);
-//        menu.add(Menu.NONE, MENU_INSTRUCTIONS, Menu.NONE, R.string.instructions_text);
-//        return true;
-//    }
-//    
-//    private static final int MENU_PICTURE = 0;
-//	private static final int MENU_RECORDING = 1;
-//	private static final int MENU_SETTINGS
+    /**
+     * Invoked during init to give the Activity a chance to set up its Menu.
+     * 
+     * @param menu the Menu to which entries may be added
+     * @return true
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(Menu.NONE, MENU_HELP, Menu.NONE, "Instructions");
+        menu.add(Menu.NONE, MENU_SETTINGS, Menu.NONE, "Settings");
+        return true;
+    }
+    
+    /**
+     * Invoked when the user selects an item from the Menu.
+     * 
+     * @param item the Menu entry which was selected
+     * @return true if the Menu item was legit (and we consumed it), false
+     *         otherwise
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case MENU_HELP:
+            	showDialog(DIALOG_HELP);
+            	return true;
+            case MENU_SETTINGS:
+				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.SettingTabView");
+				CSLog.i(TAG, "Opening settings");
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
+            	return true;
+        }
+        return false;
+    }
+    
+    private static final int MENU_HELP = 0;
+	private static final int MENU_SETTINGS = 1;
 }

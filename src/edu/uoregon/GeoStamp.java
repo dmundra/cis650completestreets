@@ -11,6 +11,7 @@ import com.google.android.maps.GeoPoint;
  * @author Daniel Mundra
  * 
  *         1/27/2010 -- David -- Added database id.
+ *         2/20/2010 -- David -- Added isNew method
  */
 public class GeoStamp {
 

@@ -19,7 +19,7 @@ import edu.uoregon.db.IGeoDB;
 import edu.uoregon.log.CSLog;
 
 /**
- * For recoring audio
+ * For recording audio
  * David -- 2/11/2010 -- Major revision. Moved a lot of functionality to DB class.
  */
 public class RecordAudioView extends Activity {
