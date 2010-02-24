@@ -76,6 +76,6 @@ public class Main extends TabActivity {
     protected void onDestroy() {
     	super.onDestroy();
         CSLog.i(TAG, "Complete Streets Application closed.");
-    	CSLog.saveLog();
+    	//CSLog.saveLog();
     }
 }

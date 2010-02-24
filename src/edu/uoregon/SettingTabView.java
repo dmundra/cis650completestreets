@@ -4,6 +4,7 @@
 package edu.uoregon;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -57,7 +58,8 @@ public class SettingTabView extends Activity {
 		Button savePortNo = (Button) findViewById(R.id.savePortNOButton);
 		Button saveBorder = (Button) findViewById(R.id.saveBorderButton);
 		CheckBox socketService = (CheckBox) findViewById(R.id.socketCheck);
-		Button saveLog = (Button) findViewById(R.id.saveLogButton);
+//		Button saveLog = (Button) findViewById(R.id.saveLogButton);
+		final Button pushToWeb = (Button) findViewById(R.id.pushToWebButton);		
 		portNumberText = (EditText) findViewById(R.id.portNumberText);
 		topText = (EditText) findViewById(R.id.topText);
 		leftText = (EditText) findViewById(R.id.leftText);
@@ -145,17 +147,31 @@ public class SettingTabView extends Activity {
 			}
 		});
 		
-		saveLog.setOnClickListener(new OnClickListener() {
+//		saveLog.setOnClickListener(new OnClickListener() {
+//
+//			@Override
+//			public void onClick(View v) {
+//				CSLog.i(TAG, "Save log button clicked.");
+//
+//				CSLog.saveLog();
+//				CSLog.i(TAG, "Saved the log!");
+//
+//				Toast.makeText(getApplicationContext(), "Saved and empties the log!",
+//						Toast.LENGTH_LONG).show();
+//			}
+//		});
+		
+		
+		pushToWeb.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				CSLog.i(TAG, "Save log button clicked.");
+				CSLog.i(TAG, "Push to web button clicked.");
 
-				CSLog.saveLog();
-				CSLog.i(TAG, "Saved the log!");
-
-				Toast.makeText(getApplicationContext(), "Saved and empties the log!",
-						Toast.LENGTH_LONG).show();
+				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.WebPushView");
+		
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
 			}
 		});
 

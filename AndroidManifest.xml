@@ -33,6 +33,7 @@
 			</intent-filter>
 		</activity>
 		<activity android:name=".RecordAudioView"></activity>
+		<activity android:name=".WebPushView"></activity>
 		<activity android:name=".TakePictureView"
 			android:screenOrientation="landscape">
 			<uses-feature android:name="android.hardware.camera" />

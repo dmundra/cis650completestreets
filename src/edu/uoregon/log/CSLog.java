@@ -61,6 +61,18 @@ public class CSLog {
 		}
 	}
 	
+	public static String getLog(){
+		
+		
+		final StringBuilder sb = new StringBuilder();
+		
+		for (String s : logList) {
+			sb.append(s + "\n");
+		}
+		
+		return sb.toString();
+	}
+	
 	private static String getDate() {
 		Calendar c = Calendar.getInstance();
 		return c.get(Calendar.YEAR) + "-" +

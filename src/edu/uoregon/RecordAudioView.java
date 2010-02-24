@@ -49,6 +49,8 @@ public class RecordAudioView extends Activity {
 
 		// Set up a temporary filename
 		final String fileName = "tempFile";
+		//make sure our temp file doesn't exists:
+		new File(getAudioFilePath(fileName)).delete();
 
 		// our buttons:
 		final Button backB = (Button) findViewById(R.id.backB);
@@ -118,8 +120,6 @@ public class RecordAudioView extends Activity {
 		// default text:
 		stopStartB.setText(startPlay);
 
-		// TODO: get audio out of db and put it in file form
-
 		// now we want to be able to play the audio:
 		showAudio(fileName, stopStartB);
 
@@ -127,7 +127,6 @@ public class RecordAudioView extends Activity {
 			public void onClick(View v) {
 				// see if we are in play mode:
 				if (stopStartB.getText().equals(startPlay)) {
-					// TODO: then play it:
 					try {
 						// let's hide our record button:
 						recordButton.setVisibility(View.INVISIBLE);
