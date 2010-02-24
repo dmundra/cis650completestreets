@@ -43,8 +43,8 @@ import edu.uoregon.log.CSLog;
  * 
  * @author Daniel Mundra
  * 
- * David -- 2/20/2010 -- Added menu functionality and record button.
- * 						This is now the main activity. See {@link Main}
+ *         David -- 2/20/2010 -- Added menu functionality and record button.
+ *         This is now the main activity. See {@link Main}
  */
 public class MapTabView extends MapActivity {
 
@@ -84,11 +84,11 @@ public class MapTabView extends MapActivity {
 		mapView.setBuiltInZoomControls(true);
 		// Standard view of the map(map/sat)
 		mapView.setSatellite(true);
-	
+
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
 		mapControl.setZoom(ZOOMLEVEL);
-		
+
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		// Get preference for whether service started or not
@@ -136,7 +136,7 @@ public class MapTabView extends MapActivity {
 
 		// Load map with all pins
 		loadMap(false);
-		
+
 		// Setup the record button
 		Button record = (Button) findViewById(R.id.recordFromMapTab);
 		record.setOnClickListener(new OnClickListener() {
@@ -207,7 +207,7 @@ public class MapTabView extends MapActivity {
 
 		// Animate to current location
 		mapControl.animateTo(curLocPoint);
-		CSLog.d(TAG, "Animate to current geo point: " + curLocPoint);
+		CSLog.i(TAG, "Animate to current geo point: " + curLocPoint);
 		checkBorder();
 
 		if (!nonUI) {
@@ -222,12 +222,12 @@ public class MapTabView extends MapActivity {
 	}
 
 	/**
-	 * Method to check whether current location is outside the border.
-	 * If border is crossed the phone will show a popup and vibrate.
+	 * Method to check whether current location is outside the border. If border
+	 * is crossed the phone will show a popup and vibrate.
 	 */
 	private void checkBorder() {
 		CSLog.i(TAG, "Check if border has been crossed.");
-		
+
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		String topText = settings.getString("topcoord", "0.0");
@@ -237,7 +237,8 @@ public class MapTabView extends MapActivity {
 
 		if (topText.equals("0.0") && leftText.equals("0.0")
 				&& bottomText.equals("0.0") && rightText.equals("0.0")) {
-			CSLog.i(TAG, "Border coords were all set to 0.0 which means no border");
+			CSLog.i(TAG,
+					"Border coords were all set to 0.0 which means no border");
 		} else {
 			int top = (int) (Double.parseDouble(topText) * 1E6);
 			int left = (int) (Double.parseDouble(leftText) * 1E6);
@@ -369,87 +370,95 @@ public class MapTabView extends MapActivity {
 			}
 		}
 	}
-	
+
 	/**
 	 * Creates dialog boxes.
 	 */
 	@Override
 	protected Dialog onCreateDialog(int id) {
 		Dialog dialog = null;
-	    switch(id) {
-	    // Record dialog
-	    case DIALOG_RECORD: {
+		switch (id) {
+		// Record dialog
+		case DIALOG_RECORD: {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			final CharSequence[] items = {"Take picture", "Record audio"};
+			final CharSequence[] items = { "Take picture", "Record audio" };
 
-			builder.setTitle("Record location")
-			.setItems(items, new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog, int item) {
-			    	switch (item) {
-			    	case 0: { // Picture
-						Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.TakePictureView");
-						CSLog.i(TAG, "Record picture clicked.");
+			builder.setTitle("Record location").setItems(items,
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int item) {
+							switch (item) {
+							case 0: { // Picture
+								Intent intent = new Intent().setClassName(
+										"edu.uoregon",
+										"edu.uoregon.TakePictureView");
+								CSLog.i(TAG, "Record picture clicked.");
 
-						// Update the current geoStamp
-						updateGeoStamp();
-						
-						// Put the database id into the intent
-						intent.putExtra("geoStampID", curGeoStamp.getDatabaseID());
-						CSLog.i(TAG, "Sending to get picture, id: "
-								+ curGeoStamp.getDatabaseID());
-						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						startActivity(intent);
-			    		break;
-			    	}
-			    	case 1: { // Audio
-						CSLog.i(TAG, "Record audio clicked.");
-						
-						// Update the current geoStamp
-						updateGeoStamp();
-						
-						// Put the database id into the intent
-						Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.RecordAudioView");
-						intent.putExtra("geoId", new Integer(curGeoStamp.getDatabaseID()));
-						CSLog.i(TAG, "Sending to get audio, id: "
-								+ curGeoStamp.getDatabaseID());
-						intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-						startActivity(intent);
-			    		break;
-			    	}
-			    	}
-			        
-			    }
-			})
-			.setCancelable(false)
-			.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					dialog.cancel();
-				}
-			});
+								// Update the current geoStamp
+								updateGeoStamp();
+
+								// Put the database id into the intent
+								intent.putExtra("geoStampID", curGeoStamp
+										.getDatabaseID());
+								CSLog.i(TAG, "Sending to get picture, id: "
+										+ curGeoStamp.getDatabaseID());
+								intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+								startActivity(intent);
+								break;
+							}
+							case 1: { // Audio
+								CSLog.i(TAG, "Record audio clicked.");
+
+								// Update the current geoStamp
+								updateGeoStamp();
+
+								// Put the database id into the intent
+								Intent intent = new Intent().setClassName(
+										"edu.uoregon",
+										"edu.uoregon.RecordAudioView");
+								intent.putExtra("geoId", new Integer(
+										curGeoStamp.getDatabaseID()));
+								CSLog.i(TAG, "Sending to get audio, id: "
+										+ curGeoStamp.getDatabaseID());
+								intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+								startActivity(intent);
+								break;
+							}
+							}
+
+							// Reload map after saving
+							loadMap(false);
+						}
+					}).setCancelable(false).setPositiveButton("Done",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							dialog.cancel();
+						}
+					});
 			dialog = builder.create();
-	        break;
-	    }
-	    // Instructions dialog
-	    case DIALOG_HELP: {
+			break;
+		}
+			// Instructions dialog
+		case DIALOG_HELP: {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
-			builder.setTitle("Instructions")
-				.setMessage(getString(R.string.instructions))
-				.setCancelable(false)
-				.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-			           public void onClick(DialogInterface dialog, int id) {
-			        	   dialog.cancel();
-			           }
-			       });
+			builder.setTitle("Instructions").setMessage(
+					getString(R.string.instructions)).setCancelable(false)
+					.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog,
+										int id) {
+									dialog.cancel();
+								}
+							});
 			dialog = builder.create();
-	        break;
-	    }
-	    }
-	    return dialog;
+			break;
+		}
+		}
+		return dialog;
 	}
-	
+
 	private final int DIALOG_RECORD = 0;
 	private final int DIALOG_HELP = 1;
-	
+
 	private void updateGeoStamp() {
 		if (curGeoStamp.isNew()) {
 			db = GeoDBConnector.open(this);
@@ -457,44 +466,47 @@ public class MapTabView extends MapActivity {
 			db.close();
 		}
 	}
-	
-    /**
-     * Invoked during init to give the Activity a chance to set up its Menu.
-     * 
-     * @param menu the Menu to which entries may be added
-     * @return true
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        menu.add(Menu.NONE, MENU_HELP, Menu.NONE, "Instructions");
-        menu.add(Menu.NONE, MENU_SETTINGS, Menu.NONE, "Settings");
-        return true;
-    }
-    
-    /**
-     * Invoked when the user selects an item from the Menu.
-     * 
-     * @param item the Menu entry which was selected
-     * @return true if the Menu item was legit (and we consumed it), false
-     *         otherwise
-     */
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case MENU_HELP:
-            	showDialog(DIALOG_HELP);
-            	return true;
-            case MENU_SETTINGS:
-				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.SettingTabView");
-				CSLog.i(TAG, "Opening settings");
-				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(intent);
-            	return true;
-        }
-        return false;
-    }
-    
-    private static final int MENU_HELP = 0;
+
+	/**
+	 * Invoked during init to give the Activity a chance to set up its Menu.
+	 * 
+	 * @param menu
+	 *            the Menu to which entries may be added
+	 * @return true
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+		menu.add(Menu.NONE, MENU_HELP, Menu.NONE, "Instructions");
+		menu.add(Menu.NONE, MENU_SETTINGS, Menu.NONE, "Settings");
+		return true;
+	}
+
+	/**
+	 * Invoked when the user selects an item from the Menu.
+	 * 
+	 * @param item
+	 *            the Menu entry which was selected
+	 * @return true if the Menu item was legit (and we consumed it), false
+	 *         otherwise
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case MENU_HELP:
+			showDialog(DIALOG_HELP);
+			return true;
+		case MENU_SETTINGS:
+			Intent intent = new Intent().setClassName("edu.uoregon",
+					"edu.uoregon.SettingTabView");
+			CSLog.i(TAG, "Opening settings");
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			startActivity(intent);
+			return true;
+		}
+		return false;
+	}
+
+	private static final int MENU_HELP = 0;
 	private static final int MENU_SETTINGS = 1;
 }

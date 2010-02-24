@@ -1,22 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, Main!</string>
-    <string name="app_name">CompleteStreets</string>
-<string name="maptabstring">Map Tab</string>
-<string name="recordtabstring">Record Tab</string>
-<string name="helptabview">Help Tab</string>
-<string name="settingtabview">Setting Tab</string>
-<string name="audioStopRecording">Stop Recording</string>
-<string name="audioStartRecording">Record Audio</string>
-<string name="audioStopPlay">Stop Playing</string>
-<string name="audioStartPlay">Play Audio</string>
-<string name="pictureTake">Take picture</string>
-<string name="instructions">* Explore the 9 square block area. \n\n
-						* In each linear block, please find and note an establishment
-						that sells and/or serves food (e.g. restaurants, cafes, markets). \n\n
-						* If there are no such establishments on a block, please note that lack.
-						To make a note, please take a picture of the building or a representative sign or record an
-						audio clip describing the establishment (e.g. name, description of the sign,
-						statement of how it was identified as selling/serving food). \n\n
-						* During the period of the trial, please take at least one picture and make at least one audio note.</string>
+	<string name="hello">Hello World, Main!</string>
+	<string name="app_name">CompleteStreets</string>
+	<string name="maptabstring">Map Tab</string>
+	<string name="recordtabstring">Record Tab</string>
+	<string name="helptabview">Help Tab</string>
+	<string name="settingtabview">Setting Tab</string>
+	<string name="audioStopRecording">Stop Recording</string>
+	<string name="audioStartRecording">Record Audio</string>
+	<string name="audioStopPlay">Stop Playing</string>
+	<string name="audioStartPlay">Play Audio</string>
+	<string name="pictureTake">Take picture</string>
+	<string name="instructions">* Explore the 9 square block area. \n\n
+		* In each
+		linear block, please find and note at least one
+		establishment that
+		sells and/or serves food (e.g. restaurants, cafes, markets).
+		\n\n
+		* If
+		there are no such establishments on a block, please note that
+		lack.
+		\n\n
+		* The application will vibrate if you leave the boundary of the
+		test area. \n
+		\tDowntown Eugene: 8th Ave - 11th Ave, Charnelton St –
+		Oak St. Start on 10th between Olive and Willamette (Emx stop)\n\n
+		* To
+		make a note, please either take a picture of the building or a
+		representative sign or record
+		an audio clip describing the establishment, or do both (image and
+		audio).</string>
 </resources>
