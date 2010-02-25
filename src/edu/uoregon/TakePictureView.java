@@ -24,6 +24,7 @@ public class TakePictureView extends Activity {
 	private int geoStampID;
 	// Used for logging
 	private static final String TAG = "TakePictureViewLog";
+	private boolean pictureTaken = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -115,7 +116,10 @@ public class TakePictureView extends Activity {
 
 		@Override
 		public void onClick(View v) {
-			mCamera.takePicture(null, null, this);
+			if (!pictureTaken) {
+				pictureTaken = true;
+				mCamera.takePicture(null, null, this);
+			}
 		}
 
 	}
