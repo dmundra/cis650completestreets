@@ -50,14 +50,22 @@
 		android:layout_toRightOf="@+id/bottomText" android:id="@+id/rightText"
 		android:width="100px" android:layout_marginLeft="10px"
 		android:layout_marginTop="20px" android:inputType="number|numberSigned|numberDecimal" android:text="0.0"></EditText>
-	<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/rightLabelText" android:text="right" android:layout_toRightOf="@+id/borderLabel" android:layout_below="@+id/topTextLabel" android:layout_marginLeft="129px" android:layout_marginTop="51px"></TextView><Button android:layout_width="wrap_content"
+	
+	<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" 
+	android:id="@+id/rightLabelText" android:text="right" 
+	android:layout_toRightOf="@+id/borderLabel" android:layout_below="@+id/topTextLabel" 
+	android:layout_marginLeft="129px" android:layout_marginTop="51px"></TextView>
+	
+	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/clearAllButton"
-		android:layout_marginLeft="10px" android:text="Clear Geo Stamps"
+		android:layout_marginLeft="10px" android:text="Clear Data"
 		android:layout_below="@+id/bottomText" android:layout_marginTop="10px"/>
-	<Button android:layout_toRightOf="@id/clearAllButton"
+		
+	<!-- <Button android:layout_toRightOf="@id/clearAllButton"
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:id="@+id/recreateAllButton" android:layout_marginLeft="10px"
 		android:text="Recreate tables" android:layout_below="@+id/bottomText" android:layout_marginTop="10px"/>
+		-->
 
 
 
@@ -71,7 +79,13 @@
     <Button android:layout_below="@id/clearAllButton"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:id="@+id/pushToWebButton" android:layout_marginLeft="10px"
-        android:text="Push to web" android:layout_marginTop="10px"/>
+        android:text="Push and Clear Data" android:layout_marginTop="10px"/>
+        
+    <EditText android:layout_below="@+id/clearAllButton"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/pushToWebButton" android:id="@+id/pushToWebName"
+        android:width="100px" android:layout_marginLeft="10px"
+        android:layout_marginTop="10px" android:text="Sub#"></EditText>
 		
 	<Button 
 		android:layout_width="fill_parent" android:layout_height="wrap_content"

@@ -54,7 +54,7 @@ public class SettingTabView extends Activity {
 		CSLog.i(TAG, "Settings view started.");
 
 		Button clearGeoStamps = (Button) findViewById(R.id.clearAllButton);
-		Button recreateTables = (Button) findViewById(R.id.recreateAllButton);
+		//Button recreateTables = (Button) findViewById(R.id.recreateAllButton);
 		Button savePortNo = (Button) findViewById(R.id.savePortNOButton);
 		Button saveBorder = (Button) findViewById(R.id.saveBorderButton);
 		CheckBox socketService = (CheckBox) findViewById(R.id.socketCheck);
@@ -121,31 +121,37 @@ public class SettingTabView extends Activity {
 
 				db.deleteAllGeoStamps();
 				CSLog.i(TAG, "Deleted all geo stamps!");
-
-				Toast.makeText(getApplicationContext(), "Geo stampes cleared!",
-						Toast.LENGTH_LONG).show();
-
-				db.close();
-			}
-		});
-
-		recreateTables.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				CSLog.i(TAG, "Recreate button clicked.");
-
-				IGeoDB db = GeoDBConnector.open(getApplicationContext());
-
+				
+				CSLog.saveLog();
+				CSLog.i(TAG, "Saved the log!");
+				
 				db.recreateTables();
 				CSLog.i(TAG, "Recreated all the tables!");
 
-				Toast.makeText(getApplicationContext(), "Tables recreated!",
+				Toast.makeText(getApplicationContext(), "Data cleared!",
 						Toast.LENGTH_LONG).show();
 
 				db.close();
 			}
 		});
+
+//		recreateTables.setOnClickListener(new OnClickListener() {
+//
+//			@Override
+//			public void onClick(View v) {
+//				CSLog.i(TAG, "Recreate button clicked.");
+//
+//				IGeoDB db = GeoDBConnector.open(getApplicationContext());
+//
+//				db.recreateTables();
+//				CSLog.i(TAG, "Recreated all the tables!");
+//
+//				Toast.makeText(getApplicationContext(), "Tables recreated!",
+//						Toast.LENGTH_LONG).show();
+//
+//				db.close();
+//			}
+//		});
 		
 //		saveLog.setOnClickListener(new OnClickListener() {
 //
@@ -170,6 +176,9 @@ public class SettingTabView extends Activity {
 
 				Intent intent = new Intent().setClassName("edu.uoregon", "edu.uoregon.WebPushView");
 		
+				//get the user name:
+				
+				intent.putExtra("userName", ((EditText) findViewById(R.id.pushToWebName)).getText().toString());
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 			}

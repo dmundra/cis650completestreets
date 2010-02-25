@@ -165,4 +165,10 @@ public interface IGeoDB {
 	 * 			The ID of the GeoStamp to delete from the database.
 	 */
 	public abstract void deleteGeoStamp(int geoStampID);
+	
+	/**
+	 * Deletes all of the audio and picture files
+	 */
+	public abstract void deleteAllFiles();
+	 
 }

@@ -305,6 +305,8 @@ public class GeoDBConnector implements IGeoDB {
 		db.delete(TABLE_GEOSTAMP, null, null);
 		db.delete(TABLE_GEOSTAMP_PICTURE, null, null);
 		db.delete(TABLE_GEOSTAMP_RECORDING, null, null);
+		
+		deleteAllFiles();
 	}
 
 	/**
@@ -331,6 +333,19 @@ public class GeoDBConnector implements IGeoDB {
 	}
 	
 	/**
+	 * @see IGeoDB#deleteAllFiles()
+	 */
+	public void deleteAllFiles(){
+		final String[] dirs = {audioFilePath, pictureFilePath};
+		for(final String d : dirs){
+			final File fDir = new File(d);
+			for(final File f : fDir.listFiles()){
+				f.delete();
+			}	
+		}
+	}
+	
+	/**
 	 * @see IGeoDB
 	 */
 	@Override
@@ -348,6 +363,7 @@ public class GeoDBConnector implements IGeoDB {
 			db.execSQL(GEOSTAMP_DELETE);
 			db.execSQL(PICTURE_DELETE);
 			db.execSQL(RECORDING_DELETE);
+			deleteAllFiles();
 			db.execSQL(GEOSTAMP_CREATE);
 			db.execSQL(PICTURE_CREATE);
 			db.execSQL(RECORDING_CREATE);

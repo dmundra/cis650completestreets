@@ -31,6 +31,7 @@ import android.os.Handler.Callback;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import edu.uoregon.db.GeoDBConnector;
@@ -51,6 +52,8 @@ public class WebPushView extends Activity {
 	private static final String URL_D = "https://www.coglink.com:8080/AndroidGPSTest/Post";
 	private static final String URL_G = "https://www.coglink.com:8080/AndroidGPSTest/PostGeo";
 
+	
+	
 	@Override
 	public void onCreate(Bundle icicle) {
 		super.onCreate(icicle);
@@ -58,13 +61,19 @@ public class WebPushView extends Activity {
 
 		init();
 		
-		
+		final String userName = getIntent().getSerializableExtra("userName").toString();
 
 		final Button button = (Button) findViewById(R.id.webpushviewB);
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				finish();
+//				if(button.getText().equals("Back")){
+					finish();
+//				}else{
+//					final EditText uName = (EditText) findViewById(R.id.webpushviewE);
+//					doThing(uName.getText().toString());
+//					button.setText("Back");
+//				}
 			}
 		});
 
@@ -89,13 +98,13 @@ public class WebPushView extends Activity {
 		
 		
 
-		doThing();
+		doThing(userName);
 
 		// text.setText("done working");
 
 	}
 
-	private void doThing() {
+	private void doThing(final String userNickName) {
 
 		
 		new Thread(new Runnable() {
@@ -105,7 +114,8 @@ public class WebPushView extends Activity {
 				handler.sendMessage(new Message());
 			}
 			
-			public void run() {
+			@SuppressWarnings("deprecation")
+            public void run() {
 
 				boolean deleteDatabase = true;
 
@@ -127,6 +137,9 @@ public class WebPushView extends Activity {
 
 					geoIds.add(g.getDatabaseID());
 				}
+				
+				//let's put our nick name in:
+				nameValuePairs.add(new BasicNameValuePair("userNickName", userId + "," + userNickName));
 
 				// let's also send our log along:
 				nameValuePairs
@@ -142,8 +155,10 @@ public class WebPushView extends Activity {
 					CSLog.saveLog();
 					toastMe("geopoints sent");
 				} catch (Exception e) {
-					toastMe("something went wrong sending geopoints: "
-					                + e.toString());
+					final String msg = "something went wrong sending geopoints: "
+		                + e.toString();
+					toastMe(msg);
+					CSLog.i(TAG, msg);
 					deleteDatabase = false;
 				}
 
@@ -157,7 +172,8 @@ public class WebPushView extends Activity {
 							toastMe("audio " + counter + " sent");
 						} else {
 							toastMe("something went wrong with audio "
-							                + counter);
+					                + counter);
+							
 							deleteDatabase = false;
 						}
 					}
