@@ -95,9 +95,12 @@ public class SettingTabView extends Activity {
 		});
 		
 		// Used to save border coords
-		ArrayAdapter adapter = ArrayAdapte
-		borderS.setAdapter(sa);
-		
+		final ArrayAdapter adapter = ArrayAdapter.createFromResource(
+	            this, R.array.borders, android.R.layout.simple_spinner_item);
+	    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+	    borderS.setAdapter(adapter);
+	    //TODO set current value
+
 		saveBorder.setOnClickListener(new OnClickListener() {
 			
 			@Override
