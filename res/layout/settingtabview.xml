@@ -18,49 +18,8 @@
 	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/borderLabel"
 		android:layout_below="@+id/portNumberLabel" android:textSize="16px"
-		android:layout_marginLeft="10px" android:text="Border:" android:layout_marginTop="20px"></TextView>
+		android:layout_marginLeft="10px" android:text="Border:" android:layout_marginTop="30px"></TextView>
 	
-	<!-- 
-	<Button android:layout_below="@+id/borderLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Save" android:layout_marginLeft="10px" android:id="@+id/saveBorderButton" android:layout_marginTop="28px"></Button>
-	<EditText android:layout_below="@+id/portNumberLabel"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_toRightOf="@+id/borderLabel" android:id="@+id/topText"
-		android:width="100px" android:layout_marginLeft="10px"
-		android:inputType="number|numberSigned|numberDecimal" android:text="0.0" android:layout_marginTop="35px"></EditText>
-	<TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:text="top" android:id="@+id/topTextLabel"
-		android:layout_toRightOf="@+id/borderLabel" android:layout_below="@+id/portNumberLabel"
-		android:layout_marginLeft="20px" android:layout_marginTop="20px"></TextView>
-	<EditText android:layout_below="@+id/portNumberLabel"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_toRightOf="@+id/topText" android:id="@+id/leftText"
-		android:width="100px" android:layout_marginLeft="10px"
-		android:inputType="number|numberSigned|numberDecimal" android:text="0.0" android:layout_marginTop="35px"></EditText>
-	<TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:id="@+id/leftLabelText"
-		android:text="left" android:layout_below="@+id/portNumberLabel"
-		android:layout_toRightOf="@+id/borderLabel" android:layout_marginLeft="130px" android:layout_marginTop="20px"></TextView>
-	<EditText android:layout_below="@+id/leftText"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_toRightOf="@+id/borderLabel" android:id="@+id/bottomText"
-		android:width="100px" android:layout_marginLeft="10px"
-		android:layout_marginTop="20px" android:inputType="number|numberSigned|numberDecimal" android:text="0.0"></EditText>
-	<TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:id="@+id/bottomLabelText"
-		android:text="bottom" android:layout_toRightOf="@+id/borderLabel"
-		android:layout_below="@+id/leftText" android:layout_marginTop="5px"
-		android:layout_marginLeft="19px"></TextView>
-	<EditText android:layout_below="@+id/leftText"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:layout_toRightOf="@+id/bottomText" android:id="@+id/rightText"
-		android:width="100px" android:layout_marginLeft="10px"
-		android:layout_marginTop="20px" android:inputType="number|numberSigned|numberDecimal" android:text="0.0"></EditText>
-	
-	<TextView android:layout_width="wrap_content" android:layout_height="wrap_content" 
-	android:id="@+id/rightLabelText" android:text="right" 
-	android:layout_toRightOf="@+id/borderLabel" android:layout_below="@+id/topTextLabel" 
-	android:layout_marginLeft="129px" android:layout_marginTop="51px"></TextView>
-	-->
 	
 	<Spinner 
         android:id="@+id/borderS"
@@ -69,28 +28,15 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:drawSelectorOnTop="true"
+        android:layout_marginTop="20px"
     />
 	
 	
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/clearAllButton"
 		android:layout_marginLeft="10px" android:text="Clear Data"
-		android:layout_below="@+id/bottomText" android:layout_marginTop="10px"/>
+		android:layout_below="@+id/borderS" android:layout_marginTop="10px"/>
 		
-	<!-- <Button android:layout_toRightOf="@id/clearAllButton"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:id="@+id/recreateAllButton" android:layout_marginLeft="10px"
-		android:text="Recreate tables" android:layout_below="@+id/bottomText" android:layout_marginTop="10px"/>
-		-->
-
-
-
-<!-- 
-	<Button android:layout_below="@id/clearAllButton"
-		android:layout_width="wrap_content" android:layout_height="wrap_content"
-		android:id="@+id/saveLogButton" android:layout_marginLeft="10px"
-		android:text="Save log" android:layout_marginTop="6px"/>
--->
 		
     <Button android:layout_below="@id/clearAllButton"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
