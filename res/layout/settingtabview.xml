@@ -13,11 +13,16 @@
 		android:layout_toRightOf="@+id/portNumberLabel" android:id="@+id/portNumberText"
 		android:text="4444" android:width="100px" android:layout_marginLeft="10px"
 		android:inputType="number" android:layout_marginTop="-3px"></EditText>
-	<Button android:layout_below="@+id/socketCheck" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toRightOf="@+id/portNumberText" android:id="@+id/savePortNOButton" android:text="Save" android:layout_marginLeft="20px" android:layout_marginTop="-4px"></Button><TextView android:layout_width="wrap_content"
+	<Button android:layout_below="@+id/socketCheck" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toRightOf="@+id/portNumberText" android:id="@+id/savePortNOButton" android:text="Save" android:layout_marginLeft="20px" android:layout_marginTop="-4px"></Button>
+	
+	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/borderLabel"
 		android:layout_below="@+id/portNumberLabel" android:textSize="16px"
 		android:layout_marginLeft="10px" android:text="Border:" android:layout_marginTop="20px"></TextView>
-	<Button android:layout_below="@+id/borderLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Save" android:layout_marginLeft="10px" android:id="@+id/saveBorderButton" android:layout_marginTop="28px"></Button><EditText android:layout_below="@+id/portNumberLabel"
+	
+	<!-- 
+	<Button android:layout_below="@+id/borderLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Save" android:layout_marginLeft="10px" android:id="@+id/saveBorderButton" android:layout_marginTop="28px"></Button>
+	<EditText android:layout_below="@+id/portNumberLabel"
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:layout_toRightOf="@+id/borderLabel" android:id="@+id/topText"
 		android:width="100px" android:layout_marginLeft="10px"
@@ -55,6 +60,17 @@
 	android:id="@+id/rightLabelText" android:text="right" 
 	android:layout_toRightOf="@+id/borderLabel" android:layout_below="@+id/topTextLabel" 
 	android:layout_marginLeft="129px" android:layout_marginTop="51px"></TextView>
+	-->
+	
+	<Spinner 
+        android:id="@+id/borderS"
+        android:layout_below="@+id/portNumberLabel"
+        android:layout_toRightOf="@+id/borderLabel"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:drawSelectorOnTop="true"
+    />
+	
 	
 	<Button android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/clearAllButton"

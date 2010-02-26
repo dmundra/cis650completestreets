@@ -240,19 +240,26 @@ public class MapTabView extends MapActivity {
 			CSLog.i(TAG,
 					"Border coords were all set to 0.0 which means no border");
 		} else {
-			int top = (int) (Double.parseDouble(topText) * 1E6);
-			int left = (int) (Double.parseDouble(leftText) * 1E6);
-			int bottom = (int) (Double.parseDouble(bottomText) * 1E6);
-			int right = (int) (Double.parseDouble(rightText) * 1E6);
-
-			if (curLocPoint.getLatitudeE6() > top
-					|| curLocPoint.getLongitudeE6() > left
-					|| curLocPoint.getLatitudeE6() < bottom
-					|| curLocPoint.getLongitudeE6() < right) {
-				CSLog.i(TAG, "Border cross alerted.");
-				Toast.makeText(getApplicationContext(), "Outside the border",
-						Toast.LENGTH_LONG).show();
-				((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+			try{
+				int top = (int) (Double.parseDouble(topText) * 1E6);
+				int left = (int) (Double.parseDouble(leftText) * 1E6);
+				int bottom = (int) (Double.parseDouble(bottomText) * 1E6);
+				int right = (int) (Double.parseDouble(rightText) * 1E6);
+	
+				if (curLocPoint.getLatitudeE6() > top
+						|| curLocPoint.getLongitudeE6() > left
+						|| curLocPoint.getLatitudeE6() < bottom
+						|| curLocPoint.getLongitudeE6() < right) {
+					CSLog.i(TAG, "Border cross alerted.");
+					Toast.makeText(getApplicationContext(), "Outside the border",
+							Toast.LENGTH_LONG).show();
+					//not sure why, but this seems to kill it???
+//					((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+				}
+			}catch(Exception e){
+				final String msg = "Something wrong with border coords";
+				Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+				CSLog.i(TAG, msg);
 			}
 		}
 	}

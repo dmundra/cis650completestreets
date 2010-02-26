@@ -9,10 +9,12 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import edu.uoregon.db.GeoDBConnector;
@@ -56,15 +58,17 @@ public class SettingTabView extends Activity {
 		Button clearGeoStamps = (Button) findViewById(R.id.clearAllButton);
 		//Button recreateTables = (Button) findViewById(R.id.recreateAllButton);
 		Button savePortNo = (Button) findViewById(R.id.savePortNOButton);
-		Button saveBorder = (Button) findViewById(R.id.saveBorderButton);
+		//Button saveBorder = (Button) findViewById(R.id.saveBorderButton);
 		CheckBox socketService = (CheckBox) findViewById(R.id.socketCheck);
 //		Button saveLog = (Button) findViewById(R.id.saveLogButton);
 		final Button pushToWeb = (Button) findViewById(R.id.pushToWebButton);		
 		portNumberText = (EditText) findViewById(R.id.portNumberText);
-		topText = (EditText) findViewById(R.id.topText);
-		leftText = (EditText) findViewById(R.id.leftText);
-		bottomText = (EditText) findViewById(R.id.bottomText);
-		rightText = (EditText) findViewById(R.id.rightText);
+		final Spinner borderS = (Spinner) findViewById(R.id.borderS);
+
+//		topText = (EditText) findViewById(R.id.topText);
+//		leftText = (EditText) findViewById(R.id.leftText);
+//		bottomText = (EditText) findViewById(R.id.bottomText);
+//		rightText = (EditText) findViewById(R.id.rightText);
 
 		// Load preferences for whether service started or not
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -91,6 +95,9 @@ public class SettingTabView extends Activity {
 		});
 		
 		// Used to save border coords
+		ArrayAdapter adapter = ArrayAdapte
+		borderS.setAdapter(sa);
+		
 		saveBorder.setOnClickListener(new OnClickListener() {
 			
 			@Override
