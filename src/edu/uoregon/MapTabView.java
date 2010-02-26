@@ -58,6 +58,11 @@ public class MapTabView extends MapActivity {
 	private final double DEFAULT_LON = -122.084095;
 	private MapController mapControl;
 	private IGeoDB db;
+	
+	//this is for our vibrate delay:
+	private long lastVibe = 0;
+	//our delay between vibrates (30 seconds):
+	private static final long VIBE_DELTA = 30000;
 
 	// Used for logging
 	private static final String TAG = "MapTabViewLog";
@@ -230,29 +235,32 @@ public class MapTabView extends MapActivity {
 
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		String topText = settings.getString("topcoord", "0.0");
-		String leftText = settings.getString("leftcoord", "0.0");
-		String bottomText = settings.getString("bottomcoord", "0.0");
-		String rightText = settings.getString("rightcoord", "0.0");
+		final Border border = Border.valueOf(settings.getString("border", "NONE"));
 
-		if (topText.equals("0.0") && leftText.equals("0.0")
-				&& bottomText.equals("0.0") && rightText.equals("0.0")) {
+		if (border == Border.NONE) {
 			CSLog.i(TAG,
-					"Border coords were all set to 0.0 which means no border");
+					"Border is set to " + border.name() + ", which means no border");
 		} else {
-			int top = (int) (Double.parseDouble(topText) * 1E6);
-			int left = (int) (Double.parseDouble(leftText) * 1E6);
-			int bottom = (int) (Double.parseDouble(bottomText) * 1E6);
-			int right = (int) (Double.parseDouble(rightText) * 1E6);
-
-			if (curLocPoint.getLatitudeE6() > top
-					|| curLocPoint.getLongitudeE6() > left
-					|| curLocPoint.getLatitudeE6() < bottom
-					|| curLocPoint.getLongitudeE6() < right) {
-				CSLog.i(TAG, "Border cross alerted.");
-				Toast.makeText(getApplicationContext(), "Outside the border",
-						Toast.LENGTH_LONG).show();
-				((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+			try{
+	
+				if (curLocPoint.getLatitudeE6() > border.top
+						|| curLocPoint.getLongitudeE6() > border.left
+						|| curLocPoint.getLatitudeE6() < border.bottom
+						|| curLocPoint.getLongitudeE6() < border.right) {
+					CSLog.i(TAG, "Border cross alerted.");
+					Toast.makeText(getApplicationContext(), "Outside the border",
+							Toast.LENGTH_LONG).show();
+					
+					//not sure why, but this seems to kill it. So we'll go with a delay
+					if(lastVibe < System.currentTimeMillis() - VIBE_DELTA){
+						lastVibe = System.currentTimeMillis();
+						((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
+					}
+				}
+			}catch(Exception e){
+				final String msg = "Something wrong with border coords";
+				Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+				CSLog.i(TAG, msg);
 			}
 		}
 	}
