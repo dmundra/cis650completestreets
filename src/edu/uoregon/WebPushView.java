@@ -67,13 +67,7 @@ public class WebPushView extends Activity {
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-//				if(button.getText().equals("Back")){
 					finish();
-//				}else{
-//					final EditText uName = (EditText) findViewById(R.id.webpushviewE);
-//					doThing(uName.getText().toString());
-//					button.setText("Back");
-//				}
 			}
 		});
 
@@ -84,11 +78,13 @@ public class WebPushView extends Activity {
 			 
 			             public boolean handleMessage(Message msg) {
 			            	 
-			            	 if(msg.arg1 != 99){
+			            	 if(msg.arg1 == 99 ){
+			            		 text.setText("done working");
+			            	 }else if(msg.arg1 == 98){
+			            		 text.setText("something went wrong");
+			            	 }else{
 			            		 Toast.makeText(WebPushView.this, messageToToast,
 								        Toast.LENGTH_SHORT).show();
-			            	 }else{
-			            		 text.setText("done working");
 			            	 }
 			
 			                 return true;
@@ -117,7 +113,12 @@ public class WebPushView extends Activity {
 			@SuppressWarnings("deprecation")
             public void run() {
 
-				boolean deleteDatabase = true;
+				//we'll leave this at false - meaning that we won't delete anything (as I would like users to double check
+				//before we clear the data)
+				boolean deleteDatabase = false;
+				
+				//tells us that the last stage was ok:
+				boolean keepWorking = true;
 
 				// this will be the id we send the server as the user id:
 				final long userId = System.currentTimeMillis();
@@ -152,7 +153,8 @@ public class WebPushView extends Activity {
 				try {
 					postMe(nameValuePairs);
 					// now delete log:
-					CSLog.saveLog();
+					//let's not just yet...make the user do it
+					//CSLog.saveLog();
 					toastMe("geopoints sent");
 				} catch (Exception e) {
 					final String msg = "something went wrong sending geopoints: "
@@ -160,6 +162,9 @@ public class WebPushView extends Activity {
 					toastMe(msg);
 					CSLog.i(TAG, msg);
 					deleteDatabase = false;
+					//we should quit:
+					badThing();
+					return;
 				}
 
 				// send audio:
@@ -175,6 +180,9 @@ public class WebPushView extends Activity {
 					                + counter);
 							
 							deleteDatabase = false;
+							//we should quit:
+							badThing();
+							return;
 						}
 					}
 				}
@@ -191,6 +199,9 @@ public class WebPushView extends Activity {
 							toastMe("something went wrong with image "
 							                + counter);
 							deleteDatabase = false;
+							//we should quit:
+							badThing();
+							return;
 						}
 					}
 				}
@@ -204,6 +215,13 @@ public class WebPushView extends Activity {
 				final Message m = new Message();
 				m.arg1 = 99;
 				handler.sendMessage(m);
+			}
+
+			private void badThing() {
+				final Message m = new Message();
+				m.arg1 = 98;
+				handler.sendMessage(m);
+				
 			}
 			
 			

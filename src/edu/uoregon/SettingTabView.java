@@ -82,24 +82,16 @@ public class SettingTabView extends Activity {
 		});
 		
 		// Used to save border coords
-//		final ArrayAdapter adapter = new ArrayAdapter(
-//	            this, android.R.layout.simple_spinner_item, Border.getNiceNames());
-//		for(String bs : Border.getNiceNames()){
-//			adapter.add(bs);
-//		}
-		
+
 		final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, Border.getNiceNames());
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 	    borderS.setAdapter(adapter);
 	    
 	    final String target = settings.getString("border", "NONE");
 	    int pos = adapter.getCount();
-	    CSLog.i(TAG, "---" + target + "---" + pos);
-	    CSLog.i(TAG, adapter.getItem(pos - 1).toString());
-//	    CSLog.i(TAG, Border.valueOf(adapter.getItem(pos).toString().toUpperCase()).name());
+	    
 	    while(pos > 0 && !Border.getByNiceName(adapter.getItem(--pos).toString()).name().equals(target)){
 	    	//work done in condition
-	    	//CSLog.i(TAG, Border.valueOf(adapter.getItem(pos).toString().toUpperCase()).name());
 	    }
 	    borderS.setSelection(pos);
 	    

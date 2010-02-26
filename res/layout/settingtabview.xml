@@ -41,7 +41,7 @@
     <Button android:layout_below="@id/clearAllButton"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:id="@+id/pushToWebButton" android:layout_marginLeft="10px"
-        android:text="Push and Clear Data" android:layout_marginTop="10px"/>
+        android:text="Push Data" android:layout_marginTop="10px"/>
         
     <EditText android:layout_below="@+id/clearAllButton"
         android:layout_width="wrap_content" android:layout_height="wrap_content"
