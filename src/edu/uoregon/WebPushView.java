@@ -1,6 +1,9 @@
 package edu.uoregon;
 
+import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
@@ -16,6 +19,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -31,7 +35,6 @@ import android.os.Handler.Callback;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import edu.uoregon.db.GeoDBConnector;
@@ -51,6 +54,9 @@ public class WebPushView extends Activity {
 	private String messageToToast = "";
 	private static final String URL_D = "https://www.coglink.com:8080/AndroidGPSTest/Post";
 	private static final String URL_G = "https://www.coglink.com:8080/AndroidGPSTest/PostGeo";
+	
+	private static final int NUM_DATA_RETRIES = 99;
+	private boolean stopSendingData = false;
 
 	
 	
@@ -67,7 +73,8 @@ public class WebPushView extends Activity {
 		button.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-					finish();
+				stopSendingData = true;
+				finish();
 			}
 		});
 
@@ -82,7 +89,11 @@ public class WebPushView extends Activity {
 			            		 text.setText("done working");
 			            	 }else if(msg.arg1 == 98){
 			            		 text.setText("something went wrong");
+//			            	 }else if(msg.arg1 == 97){
+//			            		 text.setText(text.getText() + "\n" + messageToToast);
 			            	 }else{
+			            		 text.setText(text.getText() + "\n" + messageToToast);
+			            		 
 			            		 Toast.makeText(WebPushView.this, messageToToast,
 								        Toast.LENGTH_SHORT).show();
 			            	 }
@@ -105,13 +116,12 @@ public class WebPushView extends Activity {
 		
 		new Thread(new Runnable() {
 			
-			private void toastMe(String text){
-				messageToToast = text;
-				handler.sendMessage(new Message());
-			}
+			
 			
 			@SuppressWarnings("deprecation")
             public void run() {
+				
+				stopSendingData = false;
 
 				//we'll leave this at false - meaning that we won't delete anything (as I would like users to double check
 				//before we clear the data)
@@ -170,10 +180,10 @@ public class WebPushView extends Activity {
 				// send audio:
 				counter = 0;
 				for (int gId : geoIds) {
-					for (byte[] b : db.getRecordings(gId)) {
+					for (String fName : db.getRecordingFilePaths(gId)) {
 
 						toastMe("sending audio: " + (++counter));
-						if (postMeData(userId, gId, "audio", b) > -1) {
+						if (postMeData(userId, gId, "audio", fName, NUM_DATA_RETRIES) ) {
 							toastMe("audio " + counter + " sent");
 						} else {
 							toastMe("something went wrong with audio "
@@ -190,10 +200,10 @@ public class WebPushView extends Activity {
 				// send images:
 				counter = 0;
 				for (int gId : geoIds) {
-					for (byte[] b : db.getPictures(gId)) {
+					for (String fName : db.getPictureFilePaths(gId)) {
 
 						toastMe("sending image: " + (++counter));
-						if (postMeData(userId, gId, "image", b) > -1) {
+						if (postMeData(userId, gId, "image", fName, NUM_DATA_RETRIES)) {
 							toastMe("image " + counter + " sent");
 						} else {
 							toastMe("something went wrong with image "
@@ -231,6 +241,11 @@ public class WebPushView extends Activity {
 		
 
 	}
+	
+	private void toastMe(String text){
+		messageToToast = text;
+		handler.sendMessage(new Message());
+	}
 
 	private void postMe(List<NameValuePair> nameValuePairs) throws Exception {
 		// Create a new HttpClient and Post Header
@@ -242,7 +257,12 @@ public class WebPushView extends Activity {
 		httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 		// Execute HTTP Post Request
-		httpclient.execute(httppost);
+		final HttpResponse re = httpclient.execute(httppost);
+		
+		//we know that the server sends us a HttpServletResponse.SC_CREATED (201) if things go well
+		if(re.getStatusLine().getStatusCode() != 201){
+			throw new Exception("server didn't like us");
+		}
 
 		// } catch (Exception e) {
 		// String msg = "exception pushing data: " + e.toString();
@@ -283,7 +303,13 @@ public class WebPushView extends Activity {
 		}
 	}
 
-	public int postMeData(long uId, int geoId, String type, byte[] data) {
+	public boolean postMeData(long uId, int geoId, String type, String fName, int timesToTry) {
+		
+		//see if someone wants us to stop:
+		if(stopSendingData){
+			return false;
+		}
+		
 		int result = -1;
 		try {
 			URL url = new URL(URL_D);
@@ -298,7 +324,15 @@ public class WebPushView extends Activity {
 				outWriter.writeUTF("" + uId);
 				outWriter.writeUTF("" + geoId);
 				outWriter.writeUTF(type);
-				outWriter.write(data);
+
+
+				final BufferedInputStream buf = new BufferedInputStream(new FileInputStream(new File(fName)));
+				byte[] buffer = new byte[1000];
+				for (int i = buf.read(buffer); i >= 0; i = buf.read(buffer)) {
+					outWriter.write(buffer, 0, i);
+				}
+//				outWriter.write(data);
+				
 				outWriter.close();
 				out.close();
 				result = conn.getResponseCode();
@@ -317,7 +351,19 @@ public class WebPushView extends Activity {
 			result = -3;
 
 		}
-		return result;
+		
+		//we know that the server sends us a HttpServletResponse.SC_CREATED (201) if things go well
+		if (result != 201){
+			//see if we have any times left to try:
+			if(timesToTry > 0){
+				toastMe("retrying...");
+				return postMeData(uId, geoId, type, fName, --timesToTry);
+			}else{
+				return false;
+			}
+		}else{
+			return true;
+		}
 	}
 
 }

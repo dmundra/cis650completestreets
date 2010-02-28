@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
   android:orientation="vertical">
 
-<Button android:text="Back" android:id="@+id/webpushviewB" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+<Button android:text="Back/I'm done" android:id="@+id/webpushviewB" android:layout_width="wrap_content" android:layout_height="wrap_content"></Button>
+
+<ScrollView    
+      android:layout_height="fill_parent"   
+      android:layout_width="fill_parent">  
 <TextView android:text="working..." android:id="@+id/webpushviewT" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+</ScrollView>
 
 </LinearLayout>
