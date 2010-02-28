@@ -104,16 +104,22 @@ public class MapTabView extends MapActivity {
 			// current location geo point. Should do this only once when
 			// application starts and then the location manager should
 			// manage the location changes.
-			initLocationManager();
-			CSLog.i(TAG, "Load location manager");
+			try {
+				initLocationManager();
+				CSLog.i(TAG, "Load location manager");
 
-			Location currentLocation = lm
-					.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			CSLog.i(TAG, "Load current location: " + currentLocation);
-			curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
-					currentLocation.getLongitude());
-			curLocPoint = curGeoStamp.getGeoPoint();
-			CSLog.i(TAG, "Load current geo point: " + curLocPoint);
+				Location currentLocation = lm
+						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				CSLog.i(TAG, "Load current location: " + currentLocation);
+				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
+						currentLocation.getLongitude());
+				curLocPoint = curGeoStamp.getGeoPoint();
+				CSLog.i(TAG, "Load current geo point: " + curLocPoint);
+			} catch (NullPointerException ne) {
+				Toast.makeText(getApplicationContext(), "Location was not set! Closing App!",
+						Toast.LENGTH_LONG).show();
+				finish();
+			}
 		} else {
 			try {
 				// Loads default geo stamp
