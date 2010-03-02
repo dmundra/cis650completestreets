@@ -95,6 +95,27 @@ public class MapTabView extends MapActivity {
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
 		mapControl.setZoom(ZOOMLEVEL);
+		
+		// Setup the record button
+		Button record = (Button) findViewById(R.id.recordFromMapTab);
+		record.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				showDialog(DIALOG_RECORD);
+			}
+		});
+
+		// set up our handler:
+		showToastH = new Handler(new Callback() {
+
+			public boolean handleMessage(Message msg) {
+
+				Toast.makeText(MapTabView.this, showToastHS, Toast.LENGTH_LONG)
+				        .show();
+
+				return true;
+			}
+		});
 
 	}
 
@@ -276,6 +297,8 @@ public class MapTabView extends MapActivity {
 	@Override
 	protected void onResume() {
 		CSLog.e(TAG, "Map view resumed.");
+		
+		
 
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -333,26 +356,7 @@ public class MapTabView extends MapActivity {
 		// Load map with all pins
 		loadMap(false);
 
-		// Setup the record button
-		Button record = (Button) findViewById(R.id.recordFromMapTab);
-		record.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				showDialog(DIALOG_RECORD);
-			}
-		});
-
-		// set up our handler:
-		showToastH = new Handler(new Callback() {
-
-			public boolean handleMessage(Message msg) {
-
-				Toast.makeText(MapTabView.this, showToastHS, Toast.LENGTH_LONG)
-				        .show();
-
-				return true;
-			}
-		});
+		
 
 		super.onResume();
 	}
