@@ -19,7 +19,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Vibrator;
+import android.os.Handler.Callback;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -58,11 +61,6 @@ public class MapTabView extends MapActivity {
 	private final double DEFAULT_LON = -122.084095;
 	private MapController mapControl;
 	private IGeoDB db;
-	
-	//this is for our vibrate delay:
-	private long lastVibe = 0;
-	//our delay between vibrates (30 seconds):
-	private static final long VIBE_DELTA = 30000;
 
 	// Used for logging
 	private static final String TAG = "MapTabViewLog";
@@ -76,6 +74,10 @@ public class MapTabView extends MapActivity {
 	private static boolean defaultStamp = true;
 	private ServerSocket serverSocket;
 	private final int PORTNO = 4444;
+
+	// this shows a toast with the given message:
+	private Handler showToastH = null;
+	private String showToastHS = "";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -94,6 +96,187 @@ public class MapTabView extends MapActivity {
 		mapControl = mapView.getController();
 		mapControl.setZoom(ZOOMLEVEL);
 
+	}
+
+	public void loadMap(boolean nonUI) {
+		CSLog.i(TAG, "Load Map");
+
+		// Sets up a connection to the database.
+		db = GeoDBConnector.open(this);
+
+		// Initialize icons, current is red, saved is green, current saved is
+		// purple
+		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
+		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
+		        currLocIcon.getIntrinsicHeight());
+
+		Drawable saveLocIcon = getResources().getDrawable(R.drawable.green);
+		currLocIcon.setBounds(0, 0, saveLocIcon.getIntrinsicWidth(),
+		        saveLocIcon.getIntrinsicHeight());
+
+		Drawable saveCurLocIcon = getResources().getDrawable(R.drawable.purple);
+		currLocIcon.setBounds(0, 0, saveCurLocIcon.getIntrinsicWidth(),
+		        saveCurLocIcon.getIntrinsicHeight());
+
+		List<Overlay> listOfOverlays = mapView.getOverlays();
+		listOfOverlays.clear();
+
+		// Load and display saved locations including current one if saved
+		Iterator<GeoStamp> pins = db.getGeoStamps().iterator();
+		boolean currLocNotSaved = true;
+		while (pins.hasNext()) {
+			GeoStamp next = pins.next();
+			CSLog.i(TAG, "Load saved geostamp: " + next);
+			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
+			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
+			        "Saved Location", null);
+			nextOverlay.addItem(nextOverlayItem);
+			listOfOverlays.add(nextOverlay);
+
+			GeoStamp currLoc = new GeoStamp(curGeoStamp.getLatitude(),
+			        curGeoStamp.getLongitude());
+			if (next.equals(currLoc)) {
+				currLocNotSaved = false;
+			}
+		}
+
+		// If current location is not save then it will display
+		// with red pin else load a purple pin
+		if (currLocNotSaved) {
+			MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
+			OverlayItem curLocItem = new OverlayItem(curLocPoint,
+			        "Current Location", null);
+			curLocOverlay.addItem(curLocItem);
+			listOfOverlays.add(curLocOverlay);
+		} else {
+			MapOverlay saveCurrOverlay = new MapOverlay(saveCurLocIcon);
+			OverlayItem saveCurLocItem = new OverlayItem(curLocPoint,
+			        "Saved Current Location", null);
+			saveCurrOverlay.addItem(saveCurLocItem);
+			listOfOverlays.add(saveCurrOverlay);
+		}
+
+		// Animate to current location
+		mapControl.animateTo(curLocPoint);
+		CSLog.i(TAG, "Animate to current geo point: " + curLocPoint);
+		checkBorder();
+
+		if (!nonUI) {
+			mapView.invalidate();
+		} else {
+			// This is when the socket listener calls a map update
+			mapView.postInvalidate();
+		}
+
+		// Close db
+		db.close();
+	}
+
+	/**
+	 * Method to check whether current location is outside the border. If border
+	 * is crossed the phone will show a popup and vibrate.
+	 */
+	private void checkBorder() {
+		CSLog.i(TAG, "Check if border has been crossed.");
+
+		// Load preferences file
+		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+		final Border border = Border.valueOf(settings.getString("border",
+		        "NONE"));
+
+		if (border == Border.NONE) {
+			CSLog.i(TAG, "Border is set to " + border.name()
+			        + ", which means no border");
+		} else {
+			try {
+
+				if (!border.contains(curLocPoint.getLatitudeE6(), curLocPoint
+				        .getLongitudeE6())) {
+					CSLog.i(TAG, "Border cross alerted.");
+
+					showToastHS = "Outside the border";
+					showToastH.sendMessage(new Message());
+
+					((Vibrator) getSystemService(VIBRATOR_SERVICE))
+					        .vibrate(1000);
+				}
+			} catch (Exception e) {
+				final String msg = "Something wrong with border coords";
+
+				showToastHS = msg;
+				showToastH.sendMessage(new Message());
+				// Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+				CSLog.i(TAG, msg);
+			}
+		}
+	}
+
+	/**
+	 * Initialize the location manager
+	 */
+	private void initLocationManager() {
+		CSLog.i(TAG, "Initialize location manager");
+
+		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+		ll = new LocationListener() {
+
+			public void onLocationChanged(Location newLocation) {
+				Location currentLocation = lm
+				        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				CSLog.i(TAG, "Location updated: " + currentLocation);
+				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
+				        currentLocation.getLongitude());
+				curLocPoint = curGeoStamp.getGeoPoint();
+				CSLog.i(TAG, "Geopoint updated: " + curLocPoint);
+				loadMap(false);
+			}
+
+			public void onProviderDisabled(String arg0) {
+			}
+
+			public void onProviderEnabled(String arg0) {
+			}
+
+			public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
+			}
+		};
+
+		// Current location is updated when user moves 10 meters.
+		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, LLDISTANCE,
+		        ll);
+	}
+
+	@Override
+	protected boolean isRouteDisplayed() {
+		return false;
+	}
+
+	@Override
+	protected void onPause() {
+
+		CSLog.i(TAG, "Map view paused.");
+
+		// On destroy we stop listening to updates
+		if (!socketData) {
+			lm.removeUpdates(ll);
+		} else {
+			// We close the socket
+			try {
+				CSLog.i(TAG, "Close socket server.");
+				serverSocket.close();
+			} catch (IOException e) {
+				CSLog.e(TAG, e.getMessage());
+			}
+		}
+
+		super.onPause();
+	}
+
+	@Override
+	protected void onResume() {
+		CSLog.e(TAG, "Map view resumed.");
+
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
 		// Get preference for whether service started or not
@@ -109,15 +292,17 @@ public class MapTabView extends MapActivity {
 				CSLog.i(TAG, "Load location manager");
 
 				Location currentLocation = lm
-						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+				        .getLastKnownLocation(LocationManager.GPS_PROVIDER);
 				CSLog.i(TAG, "Load current location: " + currentLocation);
 				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
-						currentLocation.getLongitude());
+				        currentLocation.getLongitude());
 				curLocPoint = curGeoStamp.getGeoPoint();
 				CSLog.i(TAG, "Load current geo point: " + curLocPoint);
 			} catch (NullPointerException ne) {
-				Toast.makeText(getApplicationContext(), "Location was not set! Closing App!",
-						Toast.LENGTH_LONG).show();
+				Toast
+				        .makeText(getApplicationContext(),
+				                "Location was not set! Closing App!",
+				                Toast.LENGTH_LONG).show();
 				finish();
 			}
 		} else {
@@ -156,178 +341,28 @@ public class MapTabView extends MapActivity {
 				showDialog(DIALOG_RECORD);
 			}
 		});
-	}
 
-	public void loadMap(boolean nonUI) {
-		CSLog.i(TAG, "Load Map");
+		// set up our handler:
+		showToastH = new Handler(new Callback() {
 
-		// Sets up a connection to the database.
-		db = GeoDBConnector.open(this);
+			public boolean handleMessage(Message msg) {
 
-		// Initialize icons, current is red, saved is green, current saved is
-		// purple
-		Drawable currLocIcon = getResources().getDrawable(R.drawable.pin);
-		currLocIcon.setBounds(0, 0, currLocIcon.getIntrinsicWidth(),
-				currLocIcon.getIntrinsicHeight());
+				Toast.makeText(MapTabView.this, showToastHS, Toast.LENGTH_LONG)
+				        .show();
 
-		Drawable saveLocIcon = getResources().getDrawable(R.drawable.green);
-		currLocIcon.setBounds(0, 0, saveLocIcon.getIntrinsicWidth(),
-				saveLocIcon.getIntrinsicHeight());
-
-		Drawable saveCurLocIcon = getResources().getDrawable(R.drawable.purple);
-		currLocIcon.setBounds(0, 0, saveCurLocIcon.getIntrinsicWidth(),
-				saveCurLocIcon.getIntrinsicHeight());
-
-		List<Overlay> listOfOverlays = mapView.getOverlays();
-		listOfOverlays.clear();
-
-		// Load and display saved locations including current one if saved
-		Iterator<GeoStamp> pins = db.getGeoStamps().iterator();
-		boolean currLocNotSaved = true;
-		while (pins.hasNext()) {
-			GeoStamp next = pins.next();
-			CSLog.i(TAG, "Load saved geostamp: " + next);
-			MapOverlay nextOverlay = new MapOverlay(saveLocIcon);
-			OverlayItem nextOverlayItem = new OverlayItem(next.getGeoPoint(),
-					"Saved Location", null);
-			nextOverlay.addItem(nextOverlayItem);
-			listOfOverlays.add(nextOverlay);
-
-			GeoStamp currLoc = new GeoStamp(curGeoStamp.getLatitude(),
-					curGeoStamp.getLongitude());
-			if (next.equals(currLoc)) {
-				currLocNotSaved = false;
+				return true;
 			}
-		}
+		});
 
-		// If current location is not save then it will display
-		// with red pin else load a purple pin
-		if (currLocNotSaved) {
-			MapOverlay curLocOverlay = new MapOverlay(currLocIcon);
-			OverlayItem curLocItem = new OverlayItem(curLocPoint,
-					"Current Location", null);
-			curLocOverlay.addItem(curLocItem);
-			listOfOverlays.add(curLocOverlay);
-		} else {
-			MapOverlay saveCurrOverlay = new MapOverlay(saveCurLocIcon);
-			OverlayItem saveCurLocItem = new OverlayItem(curLocPoint,
-					"Saved Current Location", null);
-			saveCurrOverlay.addItem(saveCurLocItem);
-			listOfOverlays.add(saveCurrOverlay);
-		}
-
-		// Animate to current location
-		mapControl.animateTo(curLocPoint);
-		CSLog.i(TAG, "Animate to current geo point: " + curLocPoint);
-		checkBorder();
-
-		if (!nonUI) {
-			mapView.invalidate();
-		} else {
-			// This is when the socket listener calls a map update
-			mapView.postInvalidate();
-		}
-
-		// Close db
-		db.close();
-	}
-
-	/**
-	 * Method to check whether current location is outside the border. If border
-	 * is crossed the phone will show a popup and vibrate.
-	 */
-	private void checkBorder() {
-		CSLog.i(TAG, "Check if border has been crossed.");
-
-		// Load preferences file
-		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		final Border border = Border.valueOf(settings.getString("border", "NONE"));
-
-		if (border == Border.NONE) {
-			CSLog.i(TAG,
-					"Border is set to " + border.name() + ", which means no border");
-		} else {
-			try{
-	
-				if (curLocPoint.getLatitudeE6() > border.top
-						|| curLocPoint.getLongitudeE6() > border.left
-						|| curLocPoint.getLatitudeE6() < border.bottom
-						|| curLocPoint.getLongitudeE6() < border.right) {
-					CSLog.i(TAG, "Border cross alerted.");
-					Toast.makeText(getApplicationContext(), "Outside the border",
-							Toast.LENGTH_LONG).show();
-					
-					//not sure why, but this seems to kill it. So we'll go with a delay
-					if(lastVibe < System.currentTimeMillis() - VIBE_DELTA){
-						lastVibe = System.currentTimeMillis();
-						((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(1000);
-					}
-				}
-			}catch(Exception e){
-				final String msg = "Something wrong with border coords";
-				Toast.makeText(this, msg, Toast.LENGTH_SHORT);
-				CSLog.i(TAG, msg);
-			}
-		}
-	}
-
-	/**
-	 * Initialize the location manager
-	 */
-	private void initLocationManager() {
-		CSLog.i(TAG, "Initialize location manager");
-
-		lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-		ll = new LocationListener() {
-
-			public void onLocationChanged(Location newLocation) {
-				Location currentLocation = lm
-						.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-				CSLog.i(TAG, "Location updated: " + currentLocation);
-				curGeoStamp = new GeoStamp(currentLocation.getLatitude(),
-						currentLocation.getLongitude());
-				curLocPoint = curGeoStamp.getGeoPoint();
-				CSLog.i(TAG, "Geopoint updated: " + curLocPoint);
-				loadMap(false);
-			}
-
-			public void onProviderDisabled(String arg0) {
-			}
-
-			public void onProviderEnabled(String arg0) {
-			}
-
-			public void onStatusChanged(String arg0, int arg1, Bundle arg2) {
-			}
-		};
-
-		// Current location is updated when user moves 10 meters.
-		lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, LLDISTANCE,
-				ll);
-	}
-
-	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
+		super.onResume();
 	}
 
 	@Override
 	protected void onDestroy() {
-		CSLog.i(TAG, "Map view closed.");
+		CSLog.i(TAG, "Map view destroyed.");
 
-		// On destroy we stop listening to updates
-		if (!socketData) {
-			lm.removeUpdates(ll);
-		} else {
-			// We close the socket
-			try {
-				CSLog.i(TAG, "Close socket server.");
-				serverSocket.close();
-			} catch (IOException e) {
-				CSLog.e(TAG, e.getMessage());
-			}
-		}
+		// save log:
+		CSLog.saveLog();
 
 		super.onDestroy();
 	}
@@ -358,8 +393,8 @@ public class MapTabView extends MapActivity {
 					clientSocket = serverSocket.accept();
 
 					BufferedReader in = new BufferedReader(
-							new InputStreamReader(clientSocket.getInputStream()),
-							SIZE);
+					        new InputStreamReader(clientSocket.getInputStream()),
+					        SIZE);
 					String inputLine = "";
 
 					while ((inputLine = in.readLine()) != null) {
@@ -398,56 +433,56 @@ public class MapTabView extends MapActivity {
 			final CharSequence[] items = { "Take picture", "Record audio" };
 
 			builder.setTitle("Record location").setItems(items,
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int item) {
-							switch (item) {
-							case 0: { // Picture
-								Intent intent = new Intent().setClassName(
-										"edu.uoregon",
-										"edu.uoregon.TakePictureView");
-								CSLog.i(TAG, "Record picture clicked.");
+			        new DialogInterface.OnClickListener() {
+				        public void onClick(DialogInterface dialog, int item) {
+					        switch (item) {
+					        case 0: { // Picture
+						        Intent intent = new Intent().setClassName(
+						                "edu.uoregon",
+						                "edu.uoregon.TakePictureView");
+						        CSLog.i(TAG, "Record picture clicked.");
 
-								// Update the current geoStamp
-								updateGeoStamp();
+						        // Update the current geoStamp
+						        updateGeoStamp();
 
-								// Put the database id into the intent
-								intent.putExtra("geoStampID", curGeoStamp
-										.getDatabaseID());
-								CSLog.i(TAG, "Sending to get picture, id: "
-										+ curGeoStamp.getDatabaseID());
-								intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-								startActivity(intent);
-								break;
-							}
-							case 1: { // Audio
-								CSLog.i(TAG, "Record audio clicked.");
+						        // Put the database id into the intent
+						        intent.putExtra("geoStampID", curGeoStamp
+						                .getDatabaseID());
+						        CSLog.i(TAG, "Sending to get picture, id: "
+						                + curGeoStamp.getDatabaseID());
+						        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						        startActivity(intent);
+						        break;
+					        }
+					        case 1: { // Audio
+						        CSLog.i(TAG, "Record audio clicked.");
 
-								// Update the current geoStamp
-								updateGeoStamp();
+						        // Update the current geoStamp
+						        updateGeoStamp();
 
-								// Put the database id into the intent
-								Intent intent = new Intent().setClassName(
-										"edu.uoregon",
-										"edu.uoregon.RecordAudioView");
-								intent.putExtra("geoId", new Integer(
-										curGeoStamp.getDatabaseID()));
-								CSLog.i(TAG, "Sending to get audio, id: "
-										+ curGeoStamp.getDatabaseID());
-								intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-								startActivity(intent);
-								break;
-							}
-							}
+						        // Put the database id into the intent
+						        Intent intent = new Intent().setClassName(
+						                "edu.uoregon",
+						                "edu.uoregon.RecordAudioView");
+						        intent.putExtra("geoId", new Integer(
+						                curGeoStamp.getDatabaseID()));
+						        CSLog.i(TAG, "Sending to get audio, id: "
+						                + curGeoStamp.getDatabaseID());
+						        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						        startActivity(intent);
+						        break;
+					        }
+					        }
 
-							// Reload map after saving
-							loadMap(false);
-						}
-					}).setCancelable(false).setPositiveButton("Done",
-					new DialogInterface.OnClickListener() {
-						public void onClick(DialogInterface dialog, int id) {
-							dialog.cancel();
-						}
-					});
+					        // Reload map after saving
+					        loadMap(false);
+				        }
+			        }).setCancelable(false).setPositiveButton("Done",
+			        new DialogInterface.OnClickListener() {
+				        public void onClick(DialogInterface dialog, int id) {
+					        dialog.cancel();
+				        }
+			        });
 			dialog = builder.create();
 			break;
 		}
@@ -455,14 +490,14 @@ public class MapTabView extends MapActivity {
 		case DIALOG_HELP: {
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setTitle("Instructions").setMessage(
-					getString(R.string.instructions)).setCancelable(false)
-					.setPositiveButton("Ok",
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int id) {
-									dialog.cancel();
-								}
-							});
+			        getString(R.string.instructions)).setCancelable(false)
+			        .setPositiveButton("Ok",
+			                new DialogInterface.OnClickListener() {
+				                public void onClick(DialogInterface dialog,
+				                        int id) {
+					                dialog.cancel();
+				                }
+			                });
 			dialog = builder.create();
 			break;
 		}
@@ -512,7 +547,7 @@ public class MapTabView extends MapActivity {
 			return true;
 		case MENU_SETTINGS:
 			Intent intent = new Intent().setClassName("edu.uoregon",
-					"edu.uoregon.SettingTabView");
+			        "edu.uoregon.SettingTabView");
 			CSLog.i(TAG, "Opening settings");
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(intent);

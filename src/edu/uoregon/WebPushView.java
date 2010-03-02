@@ -118,7 +118,7 @@ public class WebPushView extends Activity {
 			
 			
 			
-			@SuppressWarnings("deprecation")
+			
             public void run() {
 				
 				stopSendingData = false;
@@ -127,9 +127,6 @@ public class WebPushView extends Activity {
 				//before we clear the data)
 				boolean deleteDatabase = false;
 				
-				//tells us that the last stage was ok:
-				boolean keepWorking = true;
-
 				// this will be the id we send the server as the user id:
 				final long userId = System.currentTimeMillis();
 

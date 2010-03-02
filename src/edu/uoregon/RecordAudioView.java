@@ -44,7 +44,7 @@ public class RecordAudioView extends Activity {
 
 		final int geoId = (Integer) getIntent().getSerializableExtra("geoId");
 
-		// TODO close connection at some point...
+		// Open db connection
 		con = GeoDBConnector.open(this);
 
 		// Set up a temporary filename
@@ -58,7 +58,7 @@ public class RecordAudioView extends Activity {
 
 		// these are for switching the text on the record button:
 		final String stopRecordingAudio = getString(R.string.audioStopRecording);
-		final String startRecordingAudio = getString(R.string.audioStartRecording);
+		//final String startRecordingAudio = getString(R.string.audioStartRecording);
 		final Button stopStartB = (Button) findViewById(R.id.playStopB);
 
 		backB.setOnClickListener(new OnClickListener() {
@@ -95,7 +95,7 @@ public class RecordAudioView extends Activity {
 					recorder.stop();
 					recorder.reset();
 
-					recordButton.setText(startRecordingAudio);
+					
 
 					// let's do a save:
 					if(con.addRecordingToGeoStamp(geoId, getAudioFilePath(fileName))){
@@ -104,8 +104,13 @@ public class RecordAudioView extends Activity {
 								+ geoId);
 					}
 
+					//these two lines are 'replaced' by the last line'
+					//recordButton.setText(startRecordingAudio);
 					// now we want to be able to play the audio:
-					showAudio(fileName, stopStartB);
+					//showAudio(fileName, stopStartB);
+					
+					//we are actually changing everything, we are now just closing the record audio screen
+					finish();
 
 				}
 			}
