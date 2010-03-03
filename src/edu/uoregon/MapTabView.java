@@ -120,6 +120,7 @@ public class MapTabView extends MapActivity {
 	}
 
 	public void loadMap(boolean nonUI) {
+		
 		CSLog.i(TAG, "Load Map");
 
 		// Sets up a connection to the database.
@@ -188,9 +189,11 @@ public class MapTabView extends MapActivity {
 			// This is when the socket listener calls a map update
 			mapView.postInvalidate();
 		}
+		
 
 		// Close db
 		db.close();
+		
 	}
 
 	/**
@@ -393,6 +396,14 @@ public class MapTabView extends MapActivity {
 			CSLog.i(TAG, "Load geopoint from server socket");
 			try {
 				while (true) {
+					
+					//we'll try sleeping to help with the exceptions we get with the VE:
+					try{
+						Thread.sleep(1000);
+					}catch(Exception ex){
+						//do nothing
+					}
+					
 					CSLog.i(TAG, "Accepting data from socket.");
 					clientSocket = serverSocket.accept();
 
