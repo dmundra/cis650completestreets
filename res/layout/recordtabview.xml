@@ -24,7 +24,7 @@
 		android:layout_marginLeft="10px" android:layout_marginTop="180px"></Button>
 
 	<com.google.android.maps.MapView
-		android:apiKey="0D0cO4r6J87BK9tYVqHPGIfLYqnnFzvHnvDoOuQ" android:id="@+id/mapThumbView"
+		android:apiKey="0D0cO4r6J87A-cEC8WzxMHvKeepOUe4JPVXm18Q" android:id="@+id/mapThumbView"
 		android:layout_height="100px" android:layout_width="100px"
 		android:layout_marginLeft="220px" />
 </RelativeLayout>
