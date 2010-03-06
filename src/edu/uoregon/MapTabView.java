@@ -18,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -75,10 +76,6 @@ public class MapTabView extends MapActivity {
 	private ServerSocket serverSocket;
 	private final int PORTNO = 4444;
 
-	// this shows a toast with the given message:
-	private Handler showToastH = null;
-	private String showToastHS = "";
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -95,7 +92,7 @@ public class MapTabView extends MapActivity {
 		// Map Controller, we want the zoom to be close to street level
 		mapControl = mapView.getController();
 		mapControl.setZoom(ZOOMLEVEL);
-		
+
 		// Setup the record button
 		Button record = (Button) findViewById(R.id.recordFromMapTab);
 		record.setOnClickListener(new OnClickListener() {
@@ -105,22 +102,10 @@ public class MapTabView extends MapActivity {
 			}
 		});
 
-		// set up our handler:
-		showToastH = new Handler(new Callback() {
-
-			public boolean handleMessage(Message msg) {
-
-				Toast.makeText(MapTabView.this, showToastHS, Toast.LENGTH_LONG)
-				        .show();
-
-				return true;
-			}
-		});
-
 	}
 
 	public void loadMap(boolean nonUI) {
-		
+
 		CSLog.i(TAG, "Load Map");
 
 		// Sets up a connection to the database.
@@ -189,11 +174,10 @@ public class MapTabView extends MapActivity {
 			// This is when the socket listener calls a map update
 			mapView.postInvalidate();
 		}
-		
 
 		// Close db
 		db.close();
-		
+
 	}
 
 	/**
@@ -218,8 +202,8 @@ public class MapTabView extends MapActivity {
 				        .getLongitudeE6())) {
 					CSLog.i(TAG, "Border cross alerted.");
 
-					showToastHS = "Outside the border";
-					showToastH.sendMessage(new Message());
+					Toast.makeText(MapTabView.this, "Outside the border",
+					        Toast.LENGTH_LONG).show();
 
 					((Vibrator) getSystemService(VIBRATOR_SERVICE))
 					        .vibrate(1000);
@@ -227,9 +211,8 @@ public class MapTabView extends MapActivity {
 			} catch (Exception e) {
 				final String msg = "Something wrong with border coords";
 
-				showToastHS = msg;
-				showToastH.sendMessage(new Message());
-				// Toast.makeText(this, msg, Toast.LENGTH_SHORT);
+				Toast.makeText(MapTabView.this, msg, Toast.LENGTH_LONG).show();
+
 				CSLog.i(TAG, msg);
 			}
 		}
@@ -300,8 +283,6 @@ public class MapTabView extends MapActivity {
 	@Override
 	protected void onResume() {
 		CSLog.e(TAG, "Map view resumed.");
-		
-		
 
 		// Load preferences file
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -350,7 +331,8 @@ public class MapTabView extends MapActivity {
 
 				// Creates a server socket and starts the socket listener
 				serverSocket = new ServerSocket(portno);
-				new Thread(new SocketLocationListener(serverSocket)).start();
+				// new Thread(new SocketLocationListener(serverSocket)).start();
+				new SocketListener().execute(serverSocket);
 			} catch (IOException e) {
 				CSLog.e(TAG, e.getMessage());
 			}
@@ -358,8 +340,6 @@ public class MapTabView extends MapActivity {
 
 		// Load map with all pins
 		loadMap(false);
-
-		
 
 		super.onResume();
 	}
@@ -372,67 +352,6 @@ public class MapTabView extends MapActivity {
 		CSLog.saveLog();
 
 		super.onDestroy();
-	}
-
-	/**
-	 * Location listener that gets location data from a socket connection.
-	 * 
-	 * @author Daniel Mundra
-	 * 
-	 */
-	private class SocketLocationListener implements Runnable {
-
-		private ServerSocket serverSocket;
-		private Socket clientSocket;
-		private final String TAG = "ServerListenerLog";
-		private final int SIZE = 30;
-
-		private SocketLocationListener(ServerSocket serv) {
-			this.serverSocket = serv;
-		}
-
-		@Override
-		public void run() {
-			CSLog.i(TAG, "Load geopoint from server socket");
-			try {
-				while (true) {
-					
-					//we'll try sleeping to help with the exceptions we get with the VE:
-					try{
-						Thread.sleep(1000);
-					}catch(Exception ex){
-						//do nothing
-					}
-					
-					CSLog.i(TAG, "Accepting data from socket.");
-					clientSocket = serverSocket.accept();
-
-					BufferedReader in = new BufferedReader(
-					        new InputStreamReader(clientSocket.getInputStream()),
-					        SIZE);
-					String inputLine = "";
-
-					while ((inputLine = in.readLine()) != null) {
-						CSLog.i(TAG, "Got data from socket: " + inputLine);
-
-						// We are assuming we get data as "lat,lon"
-						String[] data = inputLine.split(",");
-						double lat = Double.parseDouble(data[0]);
-						double lon = Double.parseDouble(data[1]);
-
-						curGeoStamp = new GeoStamp(lat, lon);
-						curLocPoint = curGeoStamp.getGeoPoint();
-
-						CSLog.i(TAG, "Load current geo point: " + curLocPoint);
-						loadMap(true);
-					}
-
-					in.close();
-				}
-			} catch (IOException e) {
-				CSLog.e(TAG, e.getMessage());
-			}
-		}
 	}
 
 	/**
@@ -573,4 +492,73 @@ public class MapTabView extends MapActivity {
 
 	private static final int MENU_HELP = 0;
 	private static final int MENU_SETTINGS = 1;
+
+	private class SocketListener extends
+	        AsyncTask<ServerSocket, Double, Object> {
+
+		private ServerSocket serverSocket;
+		private Socket clientSocket;
+		private final String TAG = "ServerListenerLog";
+		private final int SIZE = 30;
+
+		// called by ui:
+		protected void onProgressUpdate(Double... values) {
+
+			// we just want the last values:
+			curGeoStamp = new GeoStamp(values[values.length - 2],
+			        values[values.length - 1]);
+			curLocPoint = curGeoStamp.getGeoPoint();
+
+			CSLog.i(TAG, "Load current geo point: " + curLocPoint);
+			loadMap(false);
+		}
+
+		@Override
+		protected Object doInBackground(ServerSocket... arg0) {
+
+			serverSocket = arg0[0];
+
+			CSLog.i(TAG, "Load geopoint from server socket");
+			try {
+				while (true) {
+
+					// we'll try sleeping to help with the exceptions we get
+					// with the VE:
+					try {
+						Thread.sleep(1000);
+					} catch (Exception ex) {
+						// do nothing
+					}
+
+					CSLog.i(TAG, "Accepting data from socket.");
+					clientSocket = serverSocket.accept();
+
+					BufferedReader in = new BufferedReader(
+					        new InputStreamReader(clientSocket.getInputStream()),
+					        SIZE);
+					String inputLine = "";
+
+					while ((inputLine = in.readLine()) != null) {
+						CSLog.i(TAG, "Got data from socket: " + inputLine);
+
+						// We are assuming we get data as "lat,lon"
+						String[] data = inputLine.split(",");
+						double lat = Double.parseDouble(data[0]);
+						double lon = Double.parseDouble(data[1]);
+
+						publishProgress(lat, lon);
+					}
+
+					in.close();
+				}
+			} catch (IOException e) {
+				CSLog.e(TAG, e.getMessage());
+			}
+
+			// we don't return anything:
+			return null;
+		}
+
+	}
+
 }
