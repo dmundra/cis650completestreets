@@ -3,15 +3,15 @@
 	android:layout_width="wrap_content" android:layout_height="wrap_content">
 	<CheckBox android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/socketCheck"
-		android:text="Started Socket Service" android:layout_marginLeft="10px"
+		android:text="HTTP Service" android:layout_marginLeft="10px"
 		android:layout_marginTop="5px" />
 	<TextView android:layout_width="wrap_content"
 		android:layout_height="wrap_content" android:id="@+id/portNumberLabel"
-		android:layout_below="@+id/socketCheck" android:textSize="16px" android:layout_marginLeft="10px" android:text="Port Number:" android:layout_marginTop="10px"></TextView>
+		android:layout_below="@+id/socketCheck" android:textSize="16px" android:layout_marginLeft="10px" android:text="HTTP ID:" android:layout_marginTop="10px"></TextView>
 	<EditText android:layout_below="@+id/socketCheck"
 		android:layout_width="wrap_content" android:layout_height="wrap_content"
 		android:layout_toRightOf="@+id/portNumberLabel" android:id="@+id/portNumberText"
-		android:text="4444" android:width="100px" android:layout_marginLeft="10px"
+		android:text="1" android:width="100px" android:layout_marginLeft="10px"
 		android:inputType="number" android:layout_marginTop="-3px"></EditText>
 	<Button android:layout_below="@+id/socketCheck" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_toRightOf="@+id/portNumberText" android:id="@+id/savePortNOButton" android:text="Save" android:layout_marginLeft="20px" android:layout_marginTop="-4px"></Button>
 	

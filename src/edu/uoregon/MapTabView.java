@@ -2,11 +2,19 @@ package edu.uoregon;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -37,6 +45,8 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
+import com.wittigweb.Reminders;
+import com.wittigweb.WebHelper.ReminderHandler;
 
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
@@ -332,7 +342,7 @@ public class MapTabView extends MapActivity {
 				// Creates a server socket and starts the socket listener
 				serverSocket = new ServerSocket(portno);
 				// new Thread(new SocketLocationListener(serverSocket)).start();
-				new SocketListener().execute(serverSocket);
+				new HTTPListener().execute(serverSocket);
 			} catch (IOException e) {
 				CSLog.e(TAG, e.getMessage());
 			}
@@ -493,10 +503,10 @@ public class MapTabView extends MapActivity {
 	private static final int MENU_HELP = 0;
 	private static final int MENU_SETTINGS = 1;
 
-	private class SocketListener extends
-	        AsyncTask<ServerSocket, Double, Object> {
+	private class HTTPListener extends
+	        AsyncTask<Integer, Double, Object> {
 
-		private ServerSocket serverSocket;
+		private int httpID;//ServerSocket serverSocket;
 		private Socket clientSocket;
 		private final String TAG = "ServerListenerLog";
 		private final int SIZE = 30;
@@ -514,42 +524,70 @@ public class MapTabView extends MapActivity {
 		}
 
 		@Override
-		protected Object doInBackground(ServerSocket... arg0) {
+		protected Object doInBackground(Integer... arg0) {
 
-			serverSocket = arg0[0];
+			httpID = arg0[0];
+			
+			final URL url = new URL("https://www.coglink.com:8080/AndroidGPSTest/?file=" + fileName);
 
-			CSLog.i(TAG, "Load geopoint from server socket");
+			CSLog.i(TAG, "Load geopoint from http listener");
 			try {
 				while (true) {
 
-					// we'll try sleeping to help with the exceptions we get
-					// with the VE:
+					// we only want to get new data every so often:
 					try {
-						Thread.sleep(1000);
+						Thread.sleep(2000);
 					} catch (Exception ex) {
 						// do nothing
 					}
 
-					CSLog.i(TAG, "Accepting data from socket.");
-					clientSocket = serverSocket.accept();
-
-					BufferedReader in = new BufferedReader(
-					        new InputStreamReader(clientSocket.getInputStream()),
-					        SIZE);
-					String inputLine = "";
-
-					while ((inputLine = in.readLine()) != null) {
-						CSLog.i(TAG, "Got data from socket: " + inputLine);
-
-						// We are assuming we get data as "lat,lon"
-						String[] data = inputLine.split(",");
-						double lat = Double.parseDouble(data[0]);
-						double lon = Double.parseDouble(data[1]);
-
-						publishProgress(lat, lon);
-					}
-
-					in.close();
+					CSLog.i(TAG, "Checking http service");
+					
+					
+					
+					
+					//Get a SAXParser from the SAXPArserFactory
+					SAXParserFactory spf = SAXParserFactory.newInstance();
+					SAXParser sp = spf.newSAXParser();
+					
+					//Get the XMLReader of the SAXParser we created.
+					XMLReader xr = sp.getXMLReader();
+					
+					//Create a new ContentHandler and apply it to the XML-Reader
+					ReminderHandler myExampleHandler = new ReminderHandler();
+					xr.setContentHandler(myExampleHandler);
+					
+					//Parse the xml-data from our URL
+					InputStream mystream = url.openStream();
+					//I think that this means that we have a connection, so clear the cache:
+					Reminders.getInstance().clearReminders();
+					
+					InputSource is = new InputSource(mystream);
+					xr.parse(is);
+					
+					
+					
+					
+					
+//					clientSocket = serverSocket.accept();
+//
+//					BufferedReader in = new BufferedReader(
+//					        new InputStreamReader(clientSocket.getInputStream()),
+//					        SIZE);
+//					String inputLine = "";
+//
+//					while ((inputLine = in.readLine()) != null) {
+//						CSLog.i(TAG, "Got data from socket: " + inputLine);
+//
+//						// We are assuming we get data as "lat,lon"
+//						String[] data = inputLine.split(",");
+//						double lat = Double.parseDouble(data[0]);
+//						double lon = Double.parseDouble(data[1]);
+//
+//						publishProgress(lat, lon);
+//					}
+//
+//					in.close();
 				}
 			} catch (IOException e) {
 				CSLog.e(TAG, e.getMessage());
