@@ -13,8 +13,11 @@ import java.util.List;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -32,6 +35,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.os.Handler.Callback;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -45,8 +49,6 @@ import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
-import com.wittigweb.Reminders;
-import com.wittigweb.WebHelper.ReminderHandler;
 
 import edu.uoregon.db.GeoDBConnector;
 import edu.uoregon.db.IGeoDB;
@@ -83,8 +85,9 @@ public class MapTabView extends MapActivity {
 
 	// Used for socket server
 	private static boolean defaultStamp = true;
-	private ServerSocket serverSocket;
-	private final int PORTNO = 4444;
+	// private ServerSocket serverSocket;
+	private HTTPListener httpListener = null;
+	private final int HTTP_ID = 1;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -278,13 +281,8 @@ public class MapTabView extends MapActivity {
 		if (!socketData) {
 			lm.removeUpdates(ll);
 		} else {
-			// We close the socket
-			try {
-				CSLog.i(TAG, "Close socket server.");
-				serverSocket.close();
-			} catch (IOException e) {
-				CSLog.e(TAG, e.getMessage());
-			}
+			CSLog.i(TAG, "Close http listener.");
+			httpListener.letDie();
 		}
 
 		super.onPause();
@@ -323,29 +321,30 @@ public class MapTabView extends MapActivity {
 				finish();
 			}
 		} else {
-			try {
-				// Loads default geo stamp
-				if (defaultStamp) {
-					curGeoStamp = new GeoStamp(DEFAULT_LAT, DEFAULT_LON);
-					curLocPoint = curGeoStamp.getGeoPoint();
-					defaultStamp = false;
-				}
-
-				// Get port number from preferences
-				String portNumber = settings.getString("portnumber", "");
-				int portno = PORTNO;
-				if (!portNumber.equals("")) {
-					portno = Integer.parseInt(portNumber);
-				}
-				CSLog.i(TAG, "Got port number: " + portno);
-
-				// Creates a server socket and starts the socket listener
-				serverSocket = new ServerSocket(portno);
-				// new Thread(new SocketLocationListener(serverSocket)).start();
-				new HTTPListener().execute(serverSocket);
-			} catch (IOException e) {
-				CSLog.e(TAG, e.getMessage());
+			// try {
+			// Loads default geo stamp
+			if (defaultStamp) {
+				curGeoStamp = new GeoStamp(DEFAULT_LAT, DEFAULT_LON);
+				curLocPoint = curGeoStamp.getGeoPoint();
+				defaultStamp = false;
 			}
+
+			// Get port number from preferences
+			final String httpIDS = settings.getString("portnumber", "");
+			int httpID = HTTP_ID;
+			if (!httpIDS.equals("")) {
+				httpID = Integer.parseInt(httpIDS);
+			}
+			CSLog.i(TAG, "Got httpID: " + httpID);
+
+			// Creates a server socket and starts the socket listener
+			// serverSocket = new ServerSocket(portno);
+			// new Thread(new SocketLocationListener(serverSocket)).start();
+			httpListener = new HTTPListener();
+			httpListener.execute(httpID);
+			// } catch (IOException e) {
+			// CSLog.e(TAG, e.getMessage());
+			// }
 		}
 
 		// Load map with all pins
@@ -503,13 +502,10 @@ public class MapTabView extends MapActivity {
 	private static final int MENU_HELP = 0;
 	private static final int MENU_SETTINGS = 1;
 
-	private class HTTPListener extends
-	        AsyncTask<Integer, Double, Object> {
+	private class HTTPListener extends AsyncTask<Integer, Double, Object> {
 
-		private int httpID;//ServerSocket serverSocket;
-		private Socket clientSocket;
-		private final String TAG = "ServerListenerLog";
-		private final int SIZE = 30;
+		private boolean letDie = false;
+		private final String TAG = "MapTabView.HTTPListener";
 
 		// called by ui:
 		protected void onProgressUpdate(Double... values) {
@@ -526,75 +522,103 @@ public class MapTabView extends MapActivity {
 		@Override
 		protected Object doInBackground(Integer... arg0) {
 
-			httpID = arg0[0];
-			
-			final URL url = new URL("https://www.coglink.com:8080/AndroidGPSTest/?file=" + fileName);
-
 			CSLog.i(TAG, "Load geopoint from http listener");
 			try {
-				while (true) {
+				final URL url = new URL(
+				        "https://www.coglink.com:8080/AndroidGPSTest/LocationTransfer?id="
+				                + arg0[0]);
 
-					// we only want to get new data every so often:
+				// Get a SAXParser from the SAXPArserFactory
+				SAXParserFactory spf = SAXParserFactory.newInstance();
+				SAXParser sp = spf.newSAXParser();
+				// Get the XMLReader of the SAXParser we created.
+				XMLReader xr = sp.getXMLReader();
+
+				// Create a new ContentHandler and apply it to the XML-Reader
+				LocationHandler locHandler = new LocationHandler();
+				xr.setContentHandler(locHandler);
+
+				while (!letDie) {
+
+					// we only want to get data every so often:
 					try {
 						Thread.sleep(2000);
+
+						CSLog.i(TAG, "Checking http service");
+
+						// Parse the xml-data from our URL
+						InputStream mystream = url.openStream();
+
+						InputSource is = new InputSource(mystream);
+						xr.parse(is);
+
+						// now get location from handler?
+						publishProgress(locHandler.getLoc()[0], locHandler
+						        .getLoc()[1]);
+
 					} catch (Exception ex) {
-						// do nothing
+						CSLog.e(TAG, "(inner loop exception, continuing) "
+						        + ex.getMessage());
 					}
 
-					CSLog.i(TAG, "Checking http service");
-					
-					
-					
-					
-					//Get a SAXParser from the SAXPArserFactory
-					SAXParserFactory spf = SAXParserFactory.newInstance();
-					SAXParser sp = spf.newSAXParser();
-					
-					//Get the XMLReader of the SAXParser we created.
-					XMLReader xr = sp.getXMLReader();
-					
-					//Create a new ContentHandler and apply it to the XML-Reader
-					ReminderHandler myExampleHandler = new ReminderHandler();
-					xr.setContentHandler(myExampleHandler);
-					
-					//Parse the xml-data from our URL
-					InputStream mystream = url.openStream();
-					//I think that this means that we have a connection, so clear the cache:
-					Reminders.getInstance().clearReminders();
-					
-					InputSource is = new InputSource(mystream);
-					xr.parse(is);
-					
-					
-					
-					
-					
-//					clientSocket = serverSocket.accept();
-//
-//					BufferedReader in = new BufferedReader(
-//					        new InputStreamReader(clientSocket.getInputStream()),
-//					        SIZE);
-//					String inputLine = "";
-//
-//					while ((inputLine = in.readLine()) != null) {
-//						CSLog.i(TAG, "Got data from socket: " + inputLine);
-//
-//						// We are assuming we get data as "lat,lon"
-//						String[] data = inputLine.split(",");
-//						double lat = Double.parseDouble(data[0]);
-//						double lon = Double.parseDouble(data[1]);
-//
-//						publishProgress(lat, lon);
-//					}
-//
-//					in.close();
 				}
-			} catch (IOException e) {
-				CSLog.e(TAG, e.getMessage());
+			} catch (Exception e) {
+				CSLog.e(TAG, "(outer loop exception, exiting) "
+				        + e.getMessage());
 			}
 
 			// we don't return anything:
 			return null;
+		}
+
+		private void letDie() {
+			letDie = true;
+		}
+
+	}
+
+	/**
+	 * this is our sax handler (for when we get our location info from http)
+	 */
+	private static class LocationHandler extends DefaultHandler {
+
+		// here's an array of our lat, lon
+		private double[] loc = new double[2];
+
+		@Override
+		public void startElement(String namespacesURI, String localName,
+		        String qName, Attributes atts) throws SAXException {
+			if (localName.equals("location")) {
+				// we assume that the xml is valid (i.e. doubles are doubles and
+				// floats are floats)
+				loc[0] = (Double.parseDouble(atts.getValue("lat")));
+				loc[1] = (Double.parseDouble(atts.getValue("lon")));
+			}
+		}
+
+		@Override
+		public void endElement(String namespaceURL, String localName,
+		        String qName) throws SAXException {
+			// do nothing
+		}
+
+		@Override
+		public void characters(char ch[], int start, int length) {
+			// do nothing
+		}
+
+		@Override
+		public void startDocument() throws SAXException {
+			// do nothing
+		}
+
+		@Override
+		public void endDocument() throws SAXException {
+			// do nothing
+		}
+
+		public double[] getLoc() {
+			return loc;
 		}
 
 	}
